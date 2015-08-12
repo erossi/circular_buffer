@@ -73,6 +73,10 @@ int main(void) {
 			case 'q':
 				FLloop=FALSE;
 				break;
+			case 'c':
+				cbuffer_clear(cbuffer);
+				printit(cbuffer);
+				break;
 			case '\n':
 				break;
 			default:

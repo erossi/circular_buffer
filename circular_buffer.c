@@ -22,16 +22,21 @@
 #include <stdio.h>
 #include "circular_buffer.h"
 
+void cbuffer_clear(struct cbuffer_t *cbuffer)
+{
+	cbuffer->idx=0;
+	cbuffer->msgs=0;
+	cbuffer->start=0;
+	cbuffer->FLowf=FALSE;
+}
+
 struct cbuffer_t *cbuffer_init(void)
 {
 	struct cbuffer_t *cbuffer;
 
 	cbuffer = malloc(sizeof(struct cbuffer_t));
 	cbuffer->buffer = malloc(CBUF_SIZE);
-	cbuffer->idx=0;
-	cbuffer->msgs=0;
-	cbuffer->start=0;
-	cbuffer->FLowf=FALSE;
+	cbuffer_clear(cbuffer);
 	return(cbuffer);
 }
 

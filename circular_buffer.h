@@ -38,6 +38,7 @@ struct cbuffer_t {
 	uint8_t FLowf;
 };
 
+void cbuffer_clear(struct cbuffer_t *cbuffer);
 struct cbuffer_t *cbuffer_init(void);
 void cbuffer_shut(struct cbuffer_t *cbuffer);
 uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message);
