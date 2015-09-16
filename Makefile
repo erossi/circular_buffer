@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 CC = gcc
-CFLAGS = -Wall -Wstrict-prototypes -pedantic
+CFLAGS = -Wall -Wstrict-prototypes -pedantic -D CBUF_SAFE_EOM
 
 .PHONY: clean indent
 .SILENT: help

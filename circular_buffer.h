@@ -25,6 +25,13 @@
 #define CBUF_SIZE 20
 #define CBUF_OVR_CHAR 'x'
 
+/* to force message_get to terminate an unterminated message
+ * due to end of buffer reached, then
+ * #define CBUF_SAFE_EOM
+ * here or during the compilation time.
+ * \note the message buffer must the be all allocated.
+ */
+
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0

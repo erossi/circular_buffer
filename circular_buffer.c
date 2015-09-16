@@ -104,8 +104,10 @@ uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message, const uint8_t s
 		cbuffer->FLowf = FALSE;
 	}
 
+#ifdef CBUF_SAFE_EOM
 	/* Force termination of the message */
 	*(message + size - 1) = 0;
+#endif
 
 	return(FLeom);
 }
