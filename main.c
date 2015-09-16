@@ -22,6 +22,24 @@
 #include <stdio.h>
 #include "circular_buffer.h"
 
+/* message size */
+#define MSG_SIZE 10
+
+void help(void)
+{
+	printf("\nUsage keys:\n");
+	printf(" h : This help message.\n");
+	printf(" g : Get next message from the buffer.\n");
+	printf(" c : Clear the buffer.\n");
+	printf(" 0 : Insert an EndOfMessage (\\0).\n");
+	printf(" q : Quit.\n");
+	printf(" CR : Do nothing.\n");
+	printf(" <any others key> : Put a char in the buffer.\n");
+	printf("\n");
+	printf("note: stored chars start from letter 'a'.\n");
+	printf("\n");
+}
+
 void printit(struct cbuffer_t *cbuffer)
 {
 	uint8_t i;
@@ -57,7 +75,12 @@ int main(void) {
 
 	FLloop=TRUE;
 	cbuffer = cbuffer_init();
-	message = malloc(CBUF_SIZE);
+	message = malloc(MSG_SIZE);
+
+	printf("\nTest circular buffer.\n");
+	printf("Copyright (C) 2015 Enrico Rossi - GNU GPL\n");
+
+	help();
 
 	while (FLloop) {
 		/* get the char */
@@ -65,10 +88,13 @@ int main(void) {
 
 		switch(rxc) {
 			case 'g':
-				if (cbuffer_getmsg(cbuffer, message))
+				if (cbuffer_getmsg(cbuffer, message, MSG_SIZE))
 					printf("\nMSG: %s\n", message);
 
 				printit(cbuffer);
+				break;
+			case 'h':
+				help();
 				break;
 			case 'q':
 				FLloop=FALSE;

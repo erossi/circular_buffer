@@ -41,7 +41,8 @@ struct cbuffer_t {
 void cbuffer_clear(struct cbuffer_t *cbuffer);
 struct cbuffer_t *cbuffer_init(void);
 void cbuffer_shut(struct cbuffer_t *cbuffer);
-uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message);
+uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message,
+		const uint8_t size);
 uint8_t cbuffer_add(struct cbuffer_t *cbuffer, char rxc);
 
 #endif

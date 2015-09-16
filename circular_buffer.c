@@ -46,7 +46,7 @@ void cbuffer_shut(struct cbuffer_t *cbuffer)
 	free(cbuffer);
 }
 
-uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message)
+uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message, const uint8_t size)
 {
 	uint8_t i, j;
 	uint8_t FLeom;
@@ -59,7 +59,9 @@ uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message)
 		i = cbuffer->start;
 
 		while (!FLeom && (i < CBUF_SIZE)) {
-			*(message + j) = *(cbuffer->buffer + i);
+			/* copy only if there is space left */
+			if (j < size)
+				*(message + j) = *(cbuffer->buffer + i);
 
 			/* if end of msg */
 			if (! *(cbuffer->buffer + i)) {
@@ -82,7 +84,8 @@ uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message)
 		i = 0;
 
 		while (!FLeom && (i < cbuffer->start)) {
-			*(message + j) = *(cbuffer->buffer + i);
+			if (j < size)
+				*(message + j) = *(cbuffer->buffer + i);
 
 			if (! *(cbuffer->buffer + i)) {
 				FLeom=TRUE;
@@ -100,6 +103,9 @@ uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message)
 		cbuffer->msgs--;
 		cbuffer->FLowf = FALSE;
 	}
+
+	/* Force termination of the message */
+	*(message + size - 1) = 0;
 
 	return(FLeom);
 }
