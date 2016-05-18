@@ -23,7 +23,9 @@
 #define CBUFFER_H
 
 /*! The size of the buffer */
+#ifndef CBUF_SIZE
 #define CBUF_SIZE 20
+#endif
 
 /*!
  * The char that replace every char read.
