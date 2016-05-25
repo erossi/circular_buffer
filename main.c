@@ -46,10 +46,10 @@ void printit(struct cbuffer_t *cbuffer)
 
 	/* Print */
 	printf("\n");
-	printf("idx  : %d\n", cbuffer->idx);
-	printf("msgs : %d\n", cbuffer->msgs);
-	printf("start: %d\n", cbuffer->start);
-	printf("owfl : %d\n", cbuffer->FLowf);
+	printf("idx      : %d\n", cbuffer->idx);
+	printf("msgs     : %d\n", cbuffer->msgs);
+	printf("start    : %d\n", cbuffer->start);
+	printf("overflow : %d\n", cbuffer->overflow);
 	printf("\n");
 
 	for (i=0; i < CBUF_SIZE; i++)

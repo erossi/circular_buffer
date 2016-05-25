@@ -1,6 +1,6 @@
 /*
     Circular Buffer, a string oriented circular buffer implementation.
-    Copyright (C) 2015 Enrico Rossi
+    Copyright (C) 2015, 2016 Enrico Rossi
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,11 @@
  * Usefull to show which part of the circular buffer has been
  * read.
  */
-#define CBUF_OVR_CHAR 'x'
+#define CBUF_OVR_CHAR '-'
+
+/*! Define an End Of Message byte.
+ */
+#define CBUF_EOM 0
 
 /* to force message_get to terminate an unterminated message
  * due to end of buffer reached, then
@@ -47,11 +51,12 @@
 #endif
 
 struct cbuffer_t {
-	char *buffer;
+	uint8_t *buffer;
 	uint8_t idx;
 	uint8_t start;
+	uint8_t TOP;
 	uint8_t msgs;
-	uint8_t FLowf;
+	uint8_t overflow;
 };
 
 void cbuffer_clear(struct cbuffer_t *cbuffer);
