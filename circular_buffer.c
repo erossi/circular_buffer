@@ -50,6 +50,10 @@ void cbuffer_shut(struct cbuffer_t *cbuffer)
 	free(cbuffer);
 }
 
+/*! Get data stored in the buffer.
+ *
+ * Fetch from the start_index (cbuffer->start) to the current index (cbuffer->idx).
+ */
 uint8_t cbuffer_getdata(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size)
 {
 	uint8_t index, j;
@@ -60,50 +64,24 @@ uint8_t cbuffer_getdata(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t 
 	index = cbuffer->idx;
 	j = 0;
 
-	/* if there are data in the buffer */
-	if (cbuffer->start != index) {
-		/*!
-		 * if a wrap is needed then
-		 *  - copy from start to the TOP of the buffer plus
-		 *  - copy from the beginning of the buffer to the index.
-		 * else
-		 *  - copy from the start to the current index
-		 */
-		if (cbuffer->start > index) {
-			while (cbuffer->start < cbuffer->TOP) {
-				if (j < size) {
-					*(data + j) = *(cbuffer->buffer + cbuffer->start);
-					j++;
-				}
-
-				cbuffer->start++;
-			}
-
-			cbuffer->start = 0;
-
-			while (cbuffer->start < index) {
-				if (j < size) {
-					*(data + j) = *(cbuffer->buffer + cbuffer->start);
-					j++;
-				}
-
-				cbuffer->start++;
-			}
-		} else {
-			while (cbuffer->start < index) {
-				if (j < size) {
-					*(data + j) = *(cbuffer->buffer + cbuffer->start);
-					j++;
-				}
-
-				cbuffer->start++;
-			}
+	while (cbuffer->start != index) {
+		if (j < size) {
+			*(data + j) = *(cbuffer->buffer + cbuffer->start);
+			j++;
 		}
 
-		/* unlock the buffer */
-		cbuffer->overflow = FALSE;
+#ifdef CBUF_OVR_CHAR
+		*(cbuffer->buffer + cbuffer->start) = CBUF_OVR_CHAR;
+#endif /* CBUF_OVR_CHAR */
+
+		if (cbuffer->start == cbuffer->TOP)
+			cbuffer->start = 0;
+		else
+			cbuffer->start++;
 	}
 
+	/* unlock the buffer */
+	cbuffer->overflow = FALSE;
 	return(j);
 }
 
@@ -112,6 +90,7 @@ uint8_t cbuffer_getdata(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t 
  *
  * Assumptions: if there is a message in the buffer then an EOM char will be found.
  *
+ * \warning if an EOM is not present, this function will infinite-loop.
  */
 uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message, const uint8_t size)
 {
@@ -126,29 +105,7 @@ uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message, const uint8_t s
 		/* Copy from start to the end of the buffer, or
 		 * until an EOM is found.
 		 */
-		while (!eom && (cbuffer->start < CBUF_SIZE)) {
-			/* copy only if there is space left */
-			if (j < size) {
-				*(message + j) = *(cbuffer->buffer + cbuffer->start);
-				j++;
-			}
-
-			/* if end of msg */
-			if (*(cbuffer->buffer + cbuffer->start) == CBUF_EOM)
-				eom=TRUE;
-
-#ifdef CBUF_OVR_CHAR
-			*(cbuffer->buffer + cbuffer->start) = CBUF_OVR_CHAR;
-#endif /* CBUF_OVR_CHAR */
-
-			if (cbuffer->start == cbuffer->TOP)
-				cbuffer->start = 0;
-			else
-				cbuffer->start++;
-		}
-
-		/* wrap condition, if we haven't found EOM yet */
-		while (!eom && (cbuffer->start < CBUF_SIZE)) {
+		while (!eom) {
 			/* copy only if there is space left */
 			if (j < size) {
 				*(message + j) = *(cbuffer->buffer + cbuffer->start);
@@ -181,10 +138,12 @@ uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message, const uint8_t s
 
 	return(eom);
 }
-
 #endif /* CBUF_EOM */
 
 /* add data to the buffer.
+ *
+ * \note if overflow and EOM then the last char must be the EOM and the
+ * cbuffer->msgs must be set.
  */
 uint8_t cbuffer_add(struct cbuffer_t *cbuffer, char rxc)
 {
