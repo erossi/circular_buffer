@@ -22,15 +22,39 @@
 #include <stdio.h>
 #include "circular_buffer.h"
 
+/*! Preprocess the rxc with EOM.
+ *
+ * if overflow then store the EOM as last char and increment the message counter.
+ */
+uint8_t check_eom(struct cbuffer_t *cbuffer, char rxc)
+{
+	/* if overflow discard the current byte and then set the EOM */
+	if (cbuffer->flags.value.overflow)
+		rxc = CBUF_EOM;
+
+	/* if EOM then increase the message counter */
+	if (rxc == CBUF_EOM)
+		cbuffer->flags.value.msgs++;
+
+	return(rxc);
+}
+
+/*! Clear the buffer.
+ */
 void cbuffer_clear(struct cbuffer_t *cbuffer)
 {
 	cbuffer->idx = 0;
 	cbuffer->start = 0;
-	cbuffer->msgs = 0;
-	cbuffer->overflow = FALSE;
+	cbuffer->flags.value.msgs = 0;
+	cbuffer->flags.value.overflow = FALSE;
 }
 
-struct cbuffer_t *cbuffer_init(void)
+/*! Initialize the buffer.
+ *
+ * \param plugin enable the check_eom function plugin.
+ * \return the allocated struct.
+ */
+struct cbuffer_t *cbuffer_init(uint8_t plugin)
 {
 	struct cbuffer_t *cbuffer;
 
@@ -41,20 +65,53 @@ struct cbuffer_t *cbuffer_init(void)
 		cbuffer->TOP = CBUF_SIZE - 1;
 
 	cbuffer_clear(cbuffer);
+
+	if (plugin)
+		cbuffer->preprocess_rx = check_eom;
+	else
+		cbuffer->preprocess_rx = NULL;
+
 	return(cbuffer);
 }
 
+/*! Remove the buffer.
+ */
 void cbuffer_shut(struct cbuffer_t *cbuffer)
 {
 	free(cbuffer->buffer);
 	free(cbuffer);
 }
 
-/*! Get data stored in the buffer.
+/*! Copy a byte from the buffer to the message area.
+ *
+ * data[j] = buffer[start]
+ */
+uint8_t bcpy(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size, uint8_t j)
+{
+	if (j < size) {
+		*(data + j) = *(cbuffer->buffer + cbuffer->start);
+		j++;
+	}
+
+#ifdef CBUF_OVR_CHAR
+	*(cbuffer->buffer + cbuffer->start) = CBUF_OVR_CHAR;
+#endif
+
+	if (cbuffer->start == cbuffer->TOP)
+		cbuffer->start = 0;
+	else
+		cbuffer->start++;
+
+	return(j);
+}
+
+/*! Get binary data stored in the buffer.
  *
  * Fetch from the start_index (cbuffer->start) to the current index (cbuffer->idx).
+ *
+ * \warning if used with EOM plugin, cbuffer->flags.value.msgs must be manually cleared.
  */
-uint8_t cbuffer_getdata(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size)
+uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size)
 {
 	uint8_t index, j;
 
@@ -64,115 +121,82 @@ uint8_t cbuffer_getdata(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t 
 	index = cbuffer->idx;
 	j = 0;
 
-	while (cbuffer->start != index) {
-		if (j < size) {
-			*(data + j) = *(cbuffer->buffer + cbuffer->start);
-			j++;
-		}
+	if (cbuffer->flags.value.overflow)
+		j = bcpy(cbuffer, data, size, j);
 
-#ifdef CBUF_OVR_CHAR
-		*(cbuffer->buffer + cbuffer->start) = CBUF_OVR_CHAR;
-#endif /* CBUF_OVR_CHAR */
-
-		if (cbuffer->start == cbuffer->TOP)
-			cbuffer->start = 0;
-		else
-			cbuffer->start++;
-	}
+	while (cbuffer->start != index)
+		j = bcpy(cbuffer, data, size, j);
 
 	/* unlock the buffer */
-	cbuffer->overflow = FALSE;
+	cbuffer->flags.value.overflow = FALSE;
 	return(j);
 }
 
-#ifdef CBUF_EOM
 /*! get the message present in the buffer.
  *
  * Assumptions: if there is a message in the buffer then an EOM char will be found.
  *
- * \warning if an EOM is not present, this function will infinite-loop.
+ * \warning if an EOM is not present in the buffer, this function will infinite-loop.
  */
-uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message, const uint8_t size)
+uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, char *message, const uint8_t size)
 {
 	uint8_t j, eom;
 
 	eom = FALSE;
 
 	/* if a msg is present */
-	if (cbuffer->msgs) {
+	if (cbuffer->flags.value.msgs) {
 		j = 0;
 
 		/* Copy from start to the end of the buffer, or
 		 * until an EOM is found.
 		 */
 		while (!eom) {
-			/* copy only if there is space left */
-			if (j < size) {
-				*(message + j) = *(cbuffer->buffer + cbuffer->start);
-				j++;
-			}
-
-			/* if end of msg */
+			/* check if EOM */
 			if (*(cbuffer->buffer + cbuffer->start) == CBUF_EOM)
 				eom=TRUE;
 
-#ifdef CBUF_OVR_CHAR
-			*(cbuffer->buffer + cbuffer->start) = CBUF_OVR_CHAR;
-#endif /* CBUF_OVR_CHAR */
-
-			if (cbuffer->start == cbuffer->TOP)
-				cbuffer->start = 0;
-			else
-				cbuffer->start++;
+			j = bcpy(cbuffer, (uint8_t *)message, size, j);
 		}
 
-		cbuffer->msgs--;
+		cbuffer->flags.value.msgs--;
 		/* unlock the buffer */
-		cbuffer->overflow = FALSE;
+		cbuffer->flags.value.overflow = FALSE;
 	}
 
-#ifdef CBUF_SAFE_EOM
 	/* Put an EOM at the end of the destination buffer for security */
 	*(message + size - 1) = 0;
-#endif /* CBUF_SAFE_EOM */
 
 	return(eom);
 }
-#endif /* CBUF_EOM */
 
-/* add data to the buffer.
+/*! add data to the buffer.
  *
  * \note if overflow and EOM then the last char must be the EOM and the
- * cbuffer->msgs must be set.
+ * cbuffer->flags.value.msgs must be set.
  */
-uint8_t cbuffer_add(struct cbuffer_t *cbuffer, char rxc)
+uint8_t cbuffer_push(struct cbuffer_t *cbuffer, char rxc)
 {
 	/* If the buffer is full (overflow flag)
 	 * do nothing.
 	 */
-	if (cbuffer->overflow) {
+	if (cbuffer->flags.value.overflow) {
 		return(FALSE);
 	} else {
 		/* catch overflow */
 		if (cbuffer->start) {
 			/* idx next to start? */
 			if (cbuffer->idx == (cbuffer->start - 1))
-				cbuffer->overflow = TRUE;
+				cbuffer->flags.value.overflow = TRUE;
 		} else {
 			/* idx next to the end of the buffer? */
 			if (cbuffer->idx == cbuffer->TOP)
-				cbuffer->overflow = TRUE;
+				cbuffer->flags.value.overflow = TRUE;
 		}
 
-#ifdef CBUF_EOM
-		/* if overflow discard the current byte and then set the EOM */
-		if (cbuffer->overflow)
-			rxc = CBUF_EOM;
-
-		/* if EOM then increase the message counter */
-		if (rxc == CBUF_EOM)
-			cbuffer->msgs++;
-#endif
+		/* add the preprocess plugin */
+		if (cbuffer->preprocess_rx)
+			rxc = cbuffer->preprocess_rx(cbuffer, rxc);
 
 		*(cbuffer->buffer + cbuffer->idx) = rxc;
 

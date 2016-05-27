@@ -1,4 +1,4 @@
-# Copyright (C) 2015 Enrico Rossi
+# Copyright (C) 2015, 2016 Enrico Rossi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,14 +17,20 @@ CC = gcc
 
 # CBUF_SAFE_EOM put a \0 at the end of the buffer
 # CBUF_SIZE the size of the buffer, default to 20
-CFLAGS = -Wall -Wstrict-prototypes -pedantic -D CBUF_SAFE_EOM
+CFLAGS = -Wall -Wstrict-prototypes -pedantic
 
-.PHONY: clean indent
+.PHONY: clean indent data char
 .SILENT: help
 .SUFFIXES: .c, .o
 
-all: circular_buffer.o
-	gcc $(CFLAGS) -o cbuffer main.c circular_buffer.o
+all: data char
+
+data: circular_buffer.o
+	gcc $(CFLAGS) -o test_data test_data.c circular_buffer.o
+
+char:
+	gcc $(CFLAGS) -D CBUF_OVR_CHAR=45 -c circular_buffer.c
+	gcc $(CFLAGS) -o test_message test_message.c circular_buffer.o
 
 clean:
-	rm *.o cbuffer
+	rm *.o test_message test_data

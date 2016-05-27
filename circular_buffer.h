@@ -22,48 +22,57 @@
 #ifndef CBUFFER_H
 #define CBUFFER_H
 
-/*! The size of the buffer */
-#ifndef CBUF_SIZE
-#define CBUF_SIZE 20
+/*! Options DEFs
+ *
+ * -D CBUF_OVR_CHAR='X'
+ */
+
+/*! End Of Message.
+ *
+ * -D CBUF_EOM=0
+ */
+#ifndef CBUF_EOM
+#define CBUF_EOM 0
 #endif
 
-/*!
- * The char that replace every char read.
+/*! The size of the buffer.
  *
- * Usefull to show which part of the circular buffer has been
- * read.
+ * -D CBUF_SIZE=16
  */
-#define CBUF_OVR_CHAR '-'
-
-/*! Define an End Of Message byte.
- */
-#define CBUF_EOM 0
-
-/* to force message_get to terminate an unterminated message
- * due to end of buffer reached, then
- * #define CBUF_SAFE_EOM
- * or add "-D CBUF_SAFE_EOM" at compile time.
- */
+#ifndef CBUF_SIZE
+#define CBUF_SIZE 0x10
+#endif
 
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0
 #endif
 
+union flag_t {
+	/* GNU GCC only */
+	__extension__ struct {
+		uint8_t msgs:6;
+		uint8_t eom_plug:1;
+		uint8_t overflow:1;
+	} value;
+
+	uint8_t all;
+};
+
 struct cbuffer_t {
 	uint8_t *buffer;
 	uint8_t idx;
 	uint8_t start;
 	uint8_t TOP;
-	uint8_t msgs;
-	uint8_t overflow;
+	union flag_t flags;
+	uint8_t (*preprocess_rx)(struct cbuffer_t *cbuffer, char rxc);
 };
 
 void cbuffer_clear(struct cbuffer_t *cbuffer);
-struct cbuffer_t *cbuffer_init(void);
+struct cbuffer_t *cbuffer_init(uint8_t plugin);
 void cbuffer_shut(struct cbuffer_t *cbuffer);
-uint8_t cbuffer_getmsg(struct cbuffer_t *cbuffer, char *message,
-		const uint8_t size);
-uint8_t cbuffer_add(struct cbuffer_t *cbuffer, char rxc);
+uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size);
+uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, char *message, const uint8_t size);
+uint8_t cbuffer_push(struct cbuffer_t *cbuffer, char rxc);
 
 #endif

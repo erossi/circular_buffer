@@ -1,6 +1,6 @@
 /*
     Circular Buffer, a string oriented circular buffer implementation.
-    Copyright (C) 2015 Enrico Rossi
+    Copyright (C) 2015, 2016 Enrico Rossi
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,12 +23,13 @@
 #include "circular_buffer.h"
 
 /* message size */
-#define MSG_SIZE 10
+#define MSG_SIZE 16
 
 void help(void)
 {
 	printf("\nUsage keys:\n");
 	printf(" h : This help message.\n");
+	printf(" b : Get all data from the buffer.\n");
 	printf(" g : Get next message from the buffer.\n");
 	printf(" c : Clear the buffer.\n");
 	printf(" 0 : Insert an EndOfMessage (\\0).\n");
@@ -46,24 +47,18 @@ void printit(struct cbuffer_t *cbuffer)
 
 	/* Print */
 	printf("\n");
-	printf("idx      : %d\n", cbuffer->idx);
-	printf("msgs     : %d\n", cbuffer->msgs);
-	printf("start    : %d\n", cbuffer->start);
-	printf("overflow : %d\n", cbuffer->overflow);
-	printf("\n");
-
-	for (i=0; i < CBUF_SIZE; i++)
-		printf(" %2d", i);
-
+	printf("i: %d | ", cbuffer->idx);
+	printf("m: %d | ", cbuffer->flags.value.msgs);
+	printf("s: %d | ", cbuffer->start);
+	printf("o: %d\n", cbuffer->flags.value.overflow);
 	printf("\n");
 
 	for (i=0; i < CBUF_SIZE; i++)
 		if (*(cbuffer->buffer + i))
-			printf("  %c", *(cbuffer->buffer + i));
+			printf("%c", *(cbuffer->buffer + i));
 		else
-			printf("  *");
+			printf("*");
 
-	printf("\n");
 	printf("\n");
 }
 
@@ -74,11 +69,11 @@ int main(void) {
 	char rxc;
 
 	FLloop=TRUE;
-	cbuffer = cbuffer_init();
+	cbuffer = cbuffer_init(TRUE);
 	message = malloc(MSG_SIZE);
 
 	printf("\nTest circular buffer.\n");
-	printf("Copyright (C) 2015 Enrico Rossi - GNU GPL\n");
+	printf("Copyright (C) 2015, 2016 Enrico Rossi - GNU GPL\n");
 
 	help();
 
@@ -88,7 +83,7 @@ int main(void) {
 
 		switch(rxc) {
 			case 'g':
-				if (cbuffer_getmsg(cbuffer, message, MSG_SIZE))
+				if (cbuffer_popm(cbuffer, message, MSG_SIZE))
 					printf("\nMSG: %s\n", message);
 
 				printit(cbuffer);
@@ -111,7 +106,7 @@ int main(void) {
 				else
 					rxc = 0;
 
-				cbuffer_add(cbuffer, rxc);
+				cbuffer_push(cbuffer, rxc);
 				printit(cbuffer);
 		}
 	}
