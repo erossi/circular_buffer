@@ -19,52 +19,65 @@
 
 #include <stdint.h>
 
+/*
+ * Mandatory defs:
+ * CBUF_SIZE
+ * CBUF_EOM
+ *
+ * Optional:
+ * CBUF_OVR_CHAR
+ *
+ */
 #ifndef CBUFFER_H
 #define CBUFFER_H
 
-/*! Options DEFs
+#ifdef USE_DEFAULT_H
+#include "default.h"
+#endif
+
+/*! The size of the buffer.
  *
- * -D CBUF_OVR_CHAR='X'
+ * default to 16
  */
+#ifndef CBUF_SIZE
+#define CBUF_SIZE 16
+#endif
 
 /*! End Of Message.
  *
- * -D CBUF_EOM=0
+ * default to 0
  */
 #ifndef CBUF_EOM
 #define CBUF_EOM 0
 #endif
 
-/*! The size of the buffer.
+/*! Optional
  *
- * -D CBUF_SIZE=16
+ * -D CBUF_OVR_CHAR='X'
  */
-#ifndef CBUF_SIZE
-#define CBUF_SIZE 0x10
-#endif
 
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0
 #endif
 
-union flag_t {
-	/* GNU GCC only */
-	__extension__ struct {
-		uint8_t msgs:6;
-		uint8_t eom_plug:1;
-		uint8_t overflow:1;
-	} value;
-
-	uint8_t all;
-};
-
 struct cbuffer_t {
 	uint8_t *buffer;
 	uint8_t idx;
 	uint8_t start;
 	uint8_t TOP;
-	union flag_t flags;
+
+	union {
+		/* GNU GCC only */
+		__extension__ struct {
+			uint8_t msgs:6;
+			uint8_t eom_plug:1;
+			uint8_t overflow:1;
+		} value;
+
+		uint8_t all;
+	} flags;
+
 	uint8_t (*preprocess_rx)(struct cbuffer_t *cbuffer, char rxc);
 };
 

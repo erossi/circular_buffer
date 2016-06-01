@@ -24,7 +24,8 @@
 
 /*! Preprocess the rxc with EOM.
  *
- * if overflow then store the EOM as last char and increment the message counter.
+ * If overflow is set then the rx char is set to EOM.
+ * If the rx char is an EOM increment the message counter (message oriented rx).
  */
 uint8_t check_eom(struct cbuffer_t *cbuffer, char rxc)
 {
