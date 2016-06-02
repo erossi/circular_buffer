@@ -66,12 +66,13 @@ struct cbuffer_t {
 	uint8_t idx;
 	uint8_t start;
 	uint8_t TOP;
+	uint8_t size;
 
 	union {
 		/* GNU GCC only */
 		__extension__ struct {
 			uint8_t msgs:6;
-			uint8_t eom_plug:1;
+			uint8_t eom:1;
 			uint8_t overflow:1;
 		} value;
 

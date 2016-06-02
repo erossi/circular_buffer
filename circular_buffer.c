@@ -60,6 +60,7 @@ struct cbuffer_t *cbuffer_init(uint8_t plugin)
 	struct cbuffer_t *cbuffer;
 
 	cbuffer = malloc(sizeof(struct cbuffer_t));
+	cbuffer->size = CBUF_SIZE;
 	cbuffer->buffer = malloc(CBUF_SIZE);
 
 	if (cbuffer->buffer)
@@ -67,10 +68,13 @@ struct cbuffer_t *cbuffer_init(uint8_t plugin)
 
 	cbuffer_clear(cbuffer);
 
-	if (plugin)
+	if (plugin) {
 		cbuffer->preprocess_rx = check_eom;
-	else
+		cbuffer->flags.value.eom = TRUE;
+	} else {
 		cbuffer->preprocess_rx = NULL;
+		cbuffer->flags.value.eom = FALSE;
+	}
 
 	return(cbuffer);
 }
