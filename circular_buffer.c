@@ -130,6 +130,7 @@ uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size
 
 	/* unlock the buffer */
 	cbuffer->flags.value.overflow = FALSE;
+	cbuffer->flags.value.msgs = 0;
 	return(j);
 }
 
