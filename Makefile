@@ -23,7 +23,7 @@ CFLAGS = -Wall -Wstrict-prototypes -pedantic
 
 # Circular Buffer demo programs.
 # CBUF_SIZE the size of the buffer, default to 20
-# CBUF_EOM = 'X'
+# EOM = 'X'
 #
 
 all: data char
@@ -32,8 +32,8 @@ data: circular_buffer.o
 	gcc $(CFLAGS) -o test_data test_data.c circular_buffer.o
 
 char:
-	gcc $(CFLAGS) -D CBUF_OVR_CHAR=45 -D CBUF_EOM=88 -c circular_buffer.c
-	gcc $(CFLAGS) -o test_message test_message.c circular_buffer.o
+	gcc $(CFLAGS) -D CBUF_OVR_CHAR=45 -c circular_buffer.c
+	gcc $(CFLAGS) -o test_message -D EOM=88 test_message.c circular_buffer.o
 
 clean:
 	rm *.o test_message test_data

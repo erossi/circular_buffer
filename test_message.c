@@ -48,9 +48,8 @@ void printit(struct cbuffer_t *cbuffer)
 	/* Print */
 	printf("\n");
 	printf("i: %d | ", cbuffer->idx);
-	printf("m: %d | ", cbuffer->flags.value.msgs);
 	printf("s: %d | ", cbuffer->start);
-	printf("o: %d\n", cbuffer->flags.value.overflow);
+	printf("o: %d\n", cbuffer->flags.b.overflow);
 	printf("\n");
 
 	for (i=0; i < CBUF_SIZE; i++)
@@ -65,11 +64,12 @@ void printit(struct cbuffer_t *cbuffer)
 int main(void) {
 	struct cbuffer_t *cbuffer;
 	char *message;
-	uint8_t FLloop, len, i;
+	uint8_t FLloop, len, i, eom;
 	char rxc;
 
+	eom = EOM;
 	FLloop=TRUE;
-	cbuffer = cbuffer_init(TRUE);
+	cbuffer = cbuffer_init();
 	message = malloc(MSG_SIZE);
 
 	printf("\nTest circular buffer.\n");
@@ -83,7 +83,8 @@ int main(void) {
 
 		switch(rxc) {
 			case 'g':
-				len = cbuffer_popm(cbuffer, message, MSG_SIZE);
+				len = cbuffer_popm(cbuffer, (uint8_t *)message,
+						MSG_SIZE, eom);
 
 				if (len) {
 					/* Terminate the string
@@ -129,7 +130,7 @@ int main(void) {
 				if (rxc != '0')
 					rxc = 'a' + cbuffer->idx;
 				else
-					rxc = 'X';
+					rxc = eom;
 
 				cbuffer_push(cbuffer, rxc);
 				printit(cbuffer);

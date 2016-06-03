@@ -22,7 +22,6 @@
 /*
  * Mandatory defs:
  * CBUF_SIZE
- * CBUF_EOM
  *
  * Optional:
  * CBUF_OVR_CHAR
@@ -41,14 +40,6 @@
  */
 #ifndef CBUF_SIZE
 #define CBUF_SIZE 16
-#endif
-
-/*! End Of Message.
- *
- * default to 0
- */
-#ifndef CBUF_EOM
-#define CBUF_EOM 0
 #endif
 
 /*! Optional
@@ -71,10 +62,9 @@ struct cbuffer_t {
 	union {
 		/* GNU GCC only */
 		__extension__ struct {
-			uint8_t msgs:6;
-			uint8_t eom:1;
+			uint8_t unused:7;
 			uint8_t overflow:1;
-		} value;
+		} b;
 
 		uint8_t all;
 	} flags;
@@ -83,10 +73,11 @@ struct cbuffer_t {
 };
 
 void cbuffer_clear(struct cbuffer_t *cbuffer);
-struct cbuffer_t *cbuffer_init(uint8_t plugin);
+struct cbuffer_t *cbuffer_init(void);
 void cbuffer_shut(struct cbuffer_t *cbuffer);
 uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size);
-uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, char *message, const uint8_t size);
+uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size,
+		const uint8_t eom);
 uint8_t cbuffer_push(struct cbuffer_t *cbuffer, char rxc);
 
 #endif
