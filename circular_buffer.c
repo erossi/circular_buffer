@@ -149,11 +149,10 @@ uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, char *message, const uint8_t siz
 	uint8_t j, eom;
 
 	eom = FALSE;
+	j = 0;
 
 	/* if a msg is present */
 	if (cbuffer->flags.value.msgs) {
-		j = 0;
-
 		/* Copy from start to the end of the buffer, or
 		 * until an EOM is found.
 		 */
@@ -170,10 +169,7 @@ uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, char *message, const uint8_t siz
 		cbuffer->flags.value.overflow = FALSE;
 	}
 
-	/* Put an EOM at the end of the destination buffer for security */
-	*(message + size - 1) = 0;
-
-	return(eom);
+	return(j);
 }
 
 /*! add data to the buffer.
