@@ -32,7 +32,7 @@ void help(void)
 	printf(" b : Get all data from the buffer.\n");
 	printf(" g : Get next message from the buffer.\n");
 	printf(" c : Clear the buffer.\n");
-	printf(" 0 : Insert an EndOfMessage (\\0).\n");
+	printf(" 0 : Insert an EndOfMessage (X).\n");
 	printf(" q : Quit.\n");
 	printf(" CR : Do nothing.\n");
 	printf(" <any others key> : Put a char in the buffer.\n");
@@ -65,7 +65,7 @@ void printit(struct cbuffer_t *cbuffer)
 int main(void) {
 	struct cbuffer_t *cbuffer;
 	char *message;
-	uint8_t FLloop;
+	uint8_t FLloop, len, i;
 	char rxc;
 
 	FLloop=TRUE;
@@ -83,8 +83,33 @@ int main(void) {
 
 		switch(rxc) {
 			case 'g':
-				if (cbuffer_popm(cbuffer, message, MSG_SIZE))
-					printf("\nMSG: %s\n", message);
+				len = cbuffer_popm(cbuffer, message, MSG_SIZE);
+
+				if (len) {
+					/* Terminate the string
+					 * overwriting the EOM char
+					 */
+					*(message + len - 1) = 0;
+					printf("> MSG fetched (%d): %s\n", len, message);
+				} else {
+					printf("> No message.\n");
+				}
+
+				printit(cbuffer);
+				break;
+			case 'b':
+				len = cbuffer_pop(cbuffer, (uint8_t *)message, MSG_SIZE);
+
+				if (len) {
+					printf("> Data fetched: %d\n", len);
+
+					for (i=0; i < len; i++)
+						printf("%c", *(message + i));
+
+					printf("\n");
+				} else {
+					printf("> No data\n");
+				}
 
 				printit(cbuffer);
 				break;
@@ -104,7 +129,7 @@ int main(void) {
 				if (rxc != '0')
 					rxc = 'a' + cbuffer->idx;
 				else
-					rxc = 0;
+					rxc = 'X';
 
 				cbuffer_push(cbuffer, rxc);
 				printit(cbuffer);
