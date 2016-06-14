@@ -112,7 +112,7 @@ uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size
 		if (cbuffer->flags.b.overflow)
 			j = bcpy(cbuffer, data, size, j);
 
-		while (cbuffer->start != index)
+		while ((cbuffer->start != index) && (j < size))
 			j = bcpy(cbuffer, data, size, j);
 
 		/* unlock the buffer */
