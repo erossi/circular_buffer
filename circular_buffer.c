@@ -97,24 +97,28 @@ uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size
 {
 	uint8_t index, j;
 
-	/* freeze the index, while cbuffer->idx can be changed by volatile call to add a
-	 * new bytes to the buffer.
-	 */
-	index = cbuffer->idx;
 	j = 0;
 
-	/* Copy the 1st char.
-	 * In an overflow condition, the start = index, therefor it
-	 * will exit without getting anything back.
-	 */
-	if (cbuffer->flags.b.overflow)
-		j = bcpy(cbuffer, data, size, j);
+	if (cbuffer->len) {
+		/* freeze the index, while cbuffer->idx can be changed by
+		 * volatile call to add a new bytes to the buffer.
+		 */
+		index = cbuffer->idx;
 
-	while (cbuffer->start != index)
-		j = bcpy(cbuffer, data, size, j);
+		/* Copy the 1st char.
+		 * In an overflow condition, the start = index, therefor it
+		 * will exit without getting anything back.
+		 */
+		if (cbuffer->flags.b.overflow)
+			j = bcpy(cbuffer, data, size, j);
 
-	/* unlock the buffer */
-	cbuffer->flags.b.overflow = FALSE;
+		while (cbuffer->start != index)
+			j = bcpy(cbuffer, data, size, j);
+
+		/* unlock the buffer */
+		cbuffer->flags.b.overflow = FALSE;
+	}
+
 	return(j);
 }
 
@@ -125,33 +129,37 @@ uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t siz
 {
 	uint8_t index, j, loop;
 
-	/* freeze the index, while cbuffer->idx can be changed by volatile call
-	 * to add a new bytes to the buffer.
-	 */
-	index = cbuffer->idx;
 	j = 0;
-	loop = TRUE;
 
-	/* Copy the 1st char.
-	 * In an overflow condition, the start = index, therefor it
-	 * will exit without getting anything back.
-	 */
-	if (cbuffer->flags.b.overflow) {
-		if (*(cbuffer->buffer + cbuffer->start) == eom)
-			loop = FALSE;
+	if (cbuffer->len) {
+		/* freeze the index, while cbuffer->idx can be changed by
+		 * volatile call to add a new bytes to the buffer.
+		 */
+		index = cbuffer->idx;
+		loop = TRUE;
 
-		j = bcpy(cbuffer, data, size, j);
+		/* Copy the 1st char.
+		 * In an overflow condition, the start = index, therefor it
+		 * will exit without getting anything back.
+		 */
+		if (cbuffer->flags.b.overflow) {
+			if (*(cbuffer->buffer + cbuffer->start) == eom)
+				loop = FALSE;
+
+			j = bcpy(cbuffer, data, size, j);
+		}
+
+		while (loop && (cbuffer->start != index)) {
+			if (*(cbuffer->buffer + cbuffer->start) == eom)
+				loop = FALSE;
+
+			j = bcpy(cbuffer, data, size, j);
+		}
+
+		/* unlock the buffer */
+		cbuffer->flags.b.overflow = FALSE;
 	}
 
-	while (loop && (cbuffer->start != index)) {
-		if (*(cbuffer->buffer + cbuffer->start) == eom)
-			loop = FALSE;
-
-		j = bcpy(cbuffer, data, size, j);
-	}
-
-	/* unlock the buffer */
-	cbuffer->flags.b.overflow = FALSE;
 	return(j);
 }
 
