@@ -57,7 +57,10 @@ struct cbuffer_t {
 	uint8_t idx;
 	uint8_t start;
 	uint8_t TOP;
+	/* size of the buffer */
 	uint8_t size;
+	/* how many byte are in the buffer */
+	uint8_t len;
 
 	union {
 		/* GNU GCC only */
@@ -68,8 +71,6 @@ struct cbuffer_t {
 
 		uint8_t all;
 	} flags;
-
-	uint8_t (*preprocess_rx)(struct cbuffer_t *cbuffer, char rxc);
 };
 
 void cbuffer_clear(struct cbuffer_t *cbuffer);

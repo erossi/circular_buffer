@@ -28,6 +28,7 @@ void cbuffer_clear(struct cbuffer_t *cbuffer)
 {
 	cbuffer->idx = 0;
 	cbuffer->start = 0;
+	cbuffer->len = 0;
 	cbuffer->flags.b.overflow = FALSE;
 }
 
@@ -62,6 +63,9 @@ void cbuffer_shut(struct cbuffer_t *cbuffer)
 /*! Copy a byte from the buffer to the message area.
  *
  * data[j] = buffer[start]
+ *
+ * \note there is not protection, the next char in the buffer will be
+ * extracted, event if it should not.
  */
 uint8_t bcpy(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size, uint8_t j)
 {
@@ -79,6 +83,7 @@ uint8_t bcpy(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size, uint8
 	else
 		cbuffer->start++;
 
+	cbuffer->len--;
 	return(j);
 }
 
@@ -181,6 +186,7 @@ uint8_t cbuffer_push(struct cbuffer_t *cbuffer, char rxc)
 		else
 			cbuffer->idx++;
 
+		cbuffer->len++;
 		return(TRUE);
 	}
 }

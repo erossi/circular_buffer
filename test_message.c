@@ -49,6 +49,7 @@ void printit(struct cbuffer_t *cbuffer)
 	printf("\n");
 	printf("i: %d | ", cbuffer->idx);
 	printf("s: %d | ", cbuffer->start);
+	printf("l: %d | ", cbuffer->len);
 	printf("o: %d\n", cbuffer->flags.b.overflow);
 	printf("\n");
 
