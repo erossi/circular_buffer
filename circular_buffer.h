@@ -70,8 +70,17 @@ struct cbuffer_t {
 	union {
 		/* GNU GCC only */
 		__extension__ struct {
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+			/* lsb bit 0 */
+			uint8_t overflow:1;
+			uint8_t unused:7;
+#else
+			/* msb */
 			uint8_t unused:7;
 			uint8_t overflow:1;
+#endif
+
 		} b;
 
 		uint8_t all;
