@@ -62,6 +62,11 @@ struct cbuffer_t {
 	/* how many byte are in the buffer */
 	uint8_t len;
 
+	/* note about endianess, do not refer to
+	 * flags.all without knowing the endianess.
+	 * flags.b.overflow=1 -> flags.all = 0x01 BIG END
+	 * flags.b.overflow=1 -> flags.all = 0x80 LITTLE END
+	 */
 	union {
 		/* GNU GCC only */
 		__extension__ struct {
