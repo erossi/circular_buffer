@@ -44,10 +44,10 @@ struct storage_t {
 	/*! index ptr
 	 *
 	 * [ | | | | | | | | | | | | | | | | | | | | | | | | ]
-	 * ^-buffer  ^-start   ^-shadow            ^-idx     ^-TOP
+	 * ^-buffer  ^-start   ^-shadow            ^-idx   ^-TOP
 	 *                     ^ --- shadow len ---^
 	 *           ^------------ len ------------^
-	 * ^---------------------- size ---------------------^
+	 * ^---------------------- size -------------------^
 	 */
 	uint8_t *buffer;
 	uint8_t idx;
@@ -84,6 +84,7 @@ struct storage_t {
 };
 
 void storage_clear(struct storage_t *storage);
+uint8_t storage_len(struct storage_t *storage);
 struct storage_t* storage_init(uint8_t record_size);
 void storage_shut(struct storage_t *storage);
 uint8_t storage_get(struct storage_t *storage, void* record, uint8_t commit);

@@ -36,6 +36,13 @@ void storage_clear(struct storage_t *storage)
 	storage->shadow_len = 0;
 }
 
+/*! return the record present in the buffer.
+ */
+uint8_t storage_len(struct storage_t *storage)
+{
+	return(storage->shadow_len);
+}
+
 /*! Initialize the buffer.
  *
  * \return the allocated struct.
