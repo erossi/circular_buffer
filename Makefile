@@ -26,7 +26,7 @@ CFLAGS = -Wall -Wstrict-prototypes -pedantic
 # EOM = 'X'
 #
 
-all: data char
+all: data char record
 
 data: circular_buffer.o
 	gcc $(CFLAGS) -o test_data test_data.c circular_buffer.o
@@ -35,5 +35,8 @@ char:
 	gcc $(CFLAGS) -D CBUF_OVR_CHAR=45 -c circular_buffer.c
 	gcc $(CFLAGS) -o test_message -D EOM=88 test_message.c circular_buffer.o
 
+record: storage.o
+	gcc $(CFLAGS) -o test_record test_record.c storage.o
+
 clean:
-	rm *.o test_message test_data
+	rm -f *.o test_message test_data test_record

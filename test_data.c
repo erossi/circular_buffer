@@ -23,7 +23,7 @@
 #include "circular_buffer.h"
 
 /* message size */
-#define MSG_SIZE 16
+#define MSG_SIZE 10
 
 void help(void)
 {
