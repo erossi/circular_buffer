@@ -35,6 +35,7 @@ void help(void)
 	printf(" c : Commit the buffer.\n");
 	printf(" C : Clear the buffer.\n");
 	printf(" q : Quit.\n");
+	printf(" r : Reset the shadows.\n");
 	printf(" CR : Do nothing.\n");
 	printf(" <any others key> : Put a record in the buffer.\n");
 }
@@ -46,7 +47,7 @@ void printit(struct storage_t *storage)
 	printf("S[%d], ", storage->shadow);
 	printf("l[%d], ", storage->len);
 	printf("L[%d], ", storage->shadow_len);
-	printf("o[%d]\n", storage->flags.b.overflow);
+	printf("o[%d]\n", storage->overflow);
 }
 
 int main(void) {
@@ -91,6 +92,10 @@ int main(void) {
 				break;
 			case 'C':
 				storage_clear(storage);
+				printit(storage);
+				break;
+			case 'r':
+				storage_reset(storage);
 				printit(storage);
 				break;
 			case '\n':

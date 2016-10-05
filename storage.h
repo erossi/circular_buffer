@@ -59,9 +59,9 @@ struct storage_t {
 	uint8_t len;
 
 	/* note about endianess, do not refer to
-	 * flags.all without knowing the endianess.
-	 * flags.b.overflow=1 -> flags.all = 0x01 BIG END
-	 * flags.b.overflow=1 -> flags.all = 0x80 LITTLE END
+	 * flags without knowing the endianess.
+	 * overflow=1 -> flags = 0x01 BIG END
+	 * overflow=1 -> flags = 0x80 LITTLE END
 	 */
 	union {
 		/* GNU GCC only */
@@ -77,10 +77,10 @@ struct storage_t {
 			uint8_t overflow:1;
 #endif
 
-		} b;
+		};
 
-		uint8_t all;
-	} flags;
+		uint8_t flags;
+	};
 };
 
 void storage_clear(struct storage_t *storage);
@@ -90,5 +90,6 @@ void storage_shut(struct storage_t *storage);
 uint8_t storage_get(struct storage_t *storage, void* record, uint8_t commit);
 uint8_t storage_push(struct storage_t *storage, void* record);
 void storage_commit(struct storage_t *storage);
+void storage_reset(struct storage_t *storage);
 
 #endif

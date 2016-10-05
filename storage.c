@@ -31,7 +31,7 @@ void storage_clear(struct storage_t *storage)
 	storage->idx = 0;
 	storage->start = 0;
 	storage->len = 0;
-	storage->flags.b.overflow = FALSE;
+	storage->overflow = FALSE;
 	storage->shadow = 0;
 	storage->shadow_len = 0;
 }
@@ -77,7 +77,7 @@ void storage_shut(struct storage_t *storage)
  *
  * The duplication of the setting is necessary to avoid race condition
  * with the storage_push().
- * Until the clear of storage->flags.b.overflow, the push() will not be able to
+ * Until the clear of storage->overflow, the push() will not be able to
  * add anything.
  */
 void storage_commit(struct storage_t *storage)
@@ -85,14 +85,23 @@ void storage_commit(struct storage_t *storage)
 	if (storage->start != storage->shadow) {
 		storage->start = storage->shadow;
 		storage->len = storage->shadow_len;
-		storage->flags.b.overflow = FALSE;
+		storage->overflow = FALSE;
 	} else {
-		if (storage->flags.b.overflow) {
+		if (storage->overflow) {
 			storage->start = storage->shadow;
 			storage->len = storage->shadow_len;
-			storage->flags.b.overflow = FALSE;
+			storage->overflow = FALSE;
 		}
 	}
+}
+
+/*! Reset the shadow ptrs.
+ *
+ */
+void storage_reset(struct storage_t *storage)
+{
+	storage->shadow = storage->start;
+	storage->shadow_len = storage->len;
 }
 
 /*! Get a record from the storage.
@@ -128,18 +137,18 @@ uint8_t storage_push(struct storage_t *storage, void* record)
 	/* If the buffer is full (overflow flag)
 	 * do nothing.
 	 */
-	if (storage->flags.b.overflow) {
+	if (storage->overflow) {
 		return(FALSE);
 	} else {
 		/* catch overflow */
 		if (storage->start) {
 			/* idx next to start? */
 			if (storage->idx == (storage->start - 1))
-				storage->flags.b.overflow = TRUE;
+				storage->overflow = TRUE;
 		} else {
 			/* idx next to the end of the buffer? */
 			if (storage->idx == storage->TOP)
-				storage->flags.b.overflow = TRUE;
+				storage->overflow = TRUE;
 		}
 
 		memcpy(storage->buffer + storage->idx * storage->record_size,
