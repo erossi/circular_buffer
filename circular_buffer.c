@@ -29,7 +29,7 @@ void cbuffer_clear(struct cbuffer_t *cbuffer)
 	cbuffer->idx = 0;
 	cbuffer->start = 0;
 	cbuffer->len = 0;
-	cbuffer->flags.b.overflow = FALSE;
+	cbuffer->flags.overflow = FALSE;
 }
 
 /*! Initialize the buffer.
@@ -109,14 +109,14 @@ uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size
 		 * In an overflow condition, the start = index, therefor it
 		 * will exit without getting anything back.
 		 */
-		if (cbuffer->flags.b.overflow)
+		if (cbuffer->flags.overflow)
 			j = bcpy(cbuffer, data, size, j);
 
 		while ((cbuffer->start != index) && (j < size))
 			j = bcpy(cbuffer, data, size, j);
 
 		/* unlock the buffer */
-		cbuffer->flags.b.overflow = FALSE;
+		cbuffer->flags.overflow = FALSE;
 	}
 
 	return(j);
@@ -142,7 +142,7 @@ uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t siz
 		 * In an overflow condition, the start = index, therefor it
 		 * will exit without getting anything back.
 		 */
-		if (cbuffer->flags.b.overflow) {
+		if (cbuffer->flags.overflow) {
 			if (*(cbuffer->buffer + cbuffer->start) == eom)
 				loop = FALSE;
 
@@ -157,7 +157,7 @@ uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t siz
 		}
 
 		/* unlock the buffer */
-		cbuffer->flags.b.overflow = FALSE;
+		cbuffer->flags.overflow = FALSE;
 	}
 
 	return(j);
@@ -166,25 +166,25 @@ uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t siz
 /*! add data to the buffer.
  *
  * \note if overflow and EOM then the last char must be the EOM and the
- * cbuffer->flags.b.msgs must be set.
+ * cbuffer->flags.msgs must be set.
  */
 uint8_t cbuffer_push(struct cbuffer_t *cbuffer, char rxc)
 {
 	/* If the buffer is full (overflow flag)
 	 * do nothing.
 	 */
-	if (cbuffer->flags.b.overflow) {
+	if (cbuffer->flags.overflow) {
 		return(FALSE);
 	} else {
 		/* catch overflow */
 		if (cbuffer->start) {
 			/* idx next to start? */
 			if (cbuffer->idx == (cbuffer->start - 1))
-				cbuffer->flags.b.overflow = TRUE;
+				cbuffer->flags.overflow = TRUE;
 		} else {
 			/* idx next to the end of the buffer? */
 			if (cbuffer->idx == cbuffer->TOP)
-				cbuffer->flags.b.overflow = TRUE;
+				cbuffer->flags.overflow = TRUE;
 		}
 
 		*(cbuffer->buffer + cbuffer->idx) = rxc;

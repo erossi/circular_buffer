@@ -64,8 +64,8 @@ struct cbuffer_t {
 
 	/* note about endianess, do not refer to
 	 * flags.all without knowing the endianess.
-	 * flags.b.overflow=1 -> flags.all = 0x01 BIG END
-	 * flags.b.overflow=1 -> flags.all = 0x80 LITTLE END
+	 * flags.overflow=1 -> flags.all = 0x01 BIG END
+	 * flags.overflow=1 -> flags.all = 0x80 LITTLE END
 	 */
 	union {
 		/* GNU GCC only */
@@ -81,7 +81,7 @@ struct cbuffer_t {
 			uint8_t overflow:1;
 #endif
 
-		} b;
+		};
 
 		uint8_t all;
 	} flags;
