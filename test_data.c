@@ -46,7 +46,7 @@ void printit(struct cbuffer_t *cbuffer)
 	printf("i: %d | ", cbuffer->idx);
 	printf("s: %d | ", cbuffer->start);
 	printf("l: %d | ", cbuffer->len);
-	printf("o: %d\n", cbuffer->flags.overflow);
+	printf("o: %d\n", cbuffer->overflow);
 	printf("\n");
 
 	for (i=0; i < CBUF_SIZE; i++) {
@@ -65,7 +65,7 @@ void printit(struct cbuffer_t *cbuffer)
 		}
 
 		if (cbuffer->idx == cbuffer->start) {
-			if (cbuffer->flags.overflow)
+			if (cbuffer->overflow)
 				printf("%c", *(cbuffer->buffer + i));
 			else
 				printf("-");

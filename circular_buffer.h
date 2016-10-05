@@ -63,9 +63,9 @@ struct cbuffer_t {
 	uint8_t len;
 
 	/* note about endianess, do not refer to
-	 * flags.all without knowing the endianess.
-	 * flags.overflow=1 -> flags.all = 0x01 BIG END
-	 * flags.overflow=1 -> flags.all = 0x80 LITTLE END
+	 * flags without knowing the endianess.
+	 * overflow=1 -> flags = 0x01 BIG END
+	 * overflow=1 -> flags = 0x80 LITTLE END
 	 */
 	union {
 		/* GNU GCC only */
@@ -83,8 +83,8 @@ struct cbuffer_t {
 
 		};
 
-		uint8_t all;
-	} flags;
+		uint8_t flags;
+	};
 };
 
 void cbuffer_clear(struct cbuffer_t *cbuffer);
