@@ -49,7 +49,7 @@ struct cbuffer_t *cbuffer_init(void)
 		cbuffer->TOP = CBUF_SIZE - 1;
 
 	cbuffer_clear(cbuffer);
-	return(cbuffer);
+	return (cbuffer);
 }
 
 /*! Remove the buffer.
@@ -67,13 +67,13 @@ void cbuffer_shut(struct cbuffer_t *cbuffer)
  * \note there is not protection, the next char in the buffer will be
  * extracted, event if it should not.
  */
-uint8_t bcpy(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size, uint8_t j)
+uint8_t bcpy(struct cbuffer_t *cbuffer,
+	     uint8_t * data, const uint8_t size, uint8_t j)
 {
 	if (j < size) {
 		*(data + j) = *(cbuffer->buffer + cbuffer->start);
 		j++;
 	}
-
 #ifdef CBUF_OVR_CHAR
 	*(cbuffer->buffer + cbuffer->start) = CBUF_OVR_CHAR;
 #endif
@@ -84,7 +84,7 @@ uint8_t bcpy(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size, uint8
 		cbuffer->start++;
 
 	cbuffer->len--;
-	return(j);
+	return (j);
 }
 
 /*! Get the stored buffer.
@@ -93,7 +93,8 @@ uint8_t bcpy(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size, uint8
  *
  * \return the number of bytes received.
  */
-uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size)
+uint8_t cbuffer_pop(struct cbuffer_t * cbuffer, uint8_t * data,
+		    const uint8_t size)
 {
 	uint8_t index, j;
 
@@ -119,13 +120,13 @@ uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size
 		cbuffer->overflow = FALSE;
 	}
 
-	return(j);
+	return (j);
 }
 
 /*! get the message present in the buffer.
  */
-uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size,
-		const uint8_t eom)
+uint8_t cbuffer_popm(struct cbuffer_t * cbuffer,
+		     uint8_t * data, const uint8_t size, const uint8_t eom)
 {
 	uint8_t index, j, loop;
 
@@ -160,20 +161,20 @@ uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t siz
 		cbuffer->overflow = FALSE;
 	}
 
-	return(j);
+	return (j);
 }
 
 /*! add data to the buffer.
  *
  * \note if overflow and EOM then the last char must be the EOM.
  */
-uint8_t cbuffer_push(struct cbuffer_t *cbuffer, char rxc)
+uint8_t cbuffer_push(struct cbuffer_t * cbuffer, char rxc)
 {
 	/* If the buffer is full (overflow flag)
 	 * do nothing.
 	 */
 	if (cbuffer->overflow) {
-		return(FALSE);
+		return (FALSE);
 	} else {
 		/* catch overflow */
 		if (cbuffer->start) {
@@ -194,6 +195,6 @@ uint8_t cbuffer_push(struct cbuffer_t *cbuffer, char rxc)
 			cbuffer->idx++;
 
 		cbuffer->len++;
-		return(TRUE);
+		return (TRUE);
 	}
 }

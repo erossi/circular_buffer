@@ -90,9 +90,10 @@ struct cbuffer_t {
 void cbuffer_clear(struct cbuffer_t *cbuffer);
 struct cbuffer_t *cbuffer_init(void);
 void cbuffer_shut(struct cbuffer_t *cbuffer);
-uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size);
-uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, uint8_t *data, const uint8_t size,
-		const uint8_t eom);
+uint8_t cbuffer_pop(struct cbuffer_t *cbuffer, uint8_t * data,
+		    const uint8_t size);
+uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, uint8_t * data,
+		     const uint8_t size, const uint8_t eom);
 uint8_t cbuffer_push(struct cbuffer_t *cbuffer, char rxc);
 
 #endif
