@@ -68,8 +68,8 @@ struct cbuffer_t {
 	 * overflow=1 -> flags = 0x80 LITTLE END
 	 */
 	union {
-		/* GNU GCC only */
-		__extension__ struct {
+		/* GNU c11 */
+		struct {
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 			/* lsb bit 0 */

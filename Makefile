@@ -15,7 +15,7 @@
 
 CC = gcc
 
-CFLAGS = -Wall -Wstrict-prototypes -pedantic
+CFLAGS = -Wall -Wstrict-prototypes -pedantic -std=c11
 
 .PHONY: clean indent data char
 .SILENT: help
