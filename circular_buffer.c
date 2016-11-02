@@ -64,11 +64,12 @@ void cbuffer_shut(struct cbuffer_t *cbuffer)
  *
  * data[j] = buffer[start]
  *
+ * \warning cbuffer->start gets modified.
  * \note there is not protection, the next char in the buffer will be
- * extracted, event if it should not.
+ * extracted and indexes modified event if it should not.
  */
 uint8_t bcpy(struct cbuffer_t *cbuffer,
-	     uint8_t * data, const uint8_t size, uint8_t j)
+	     uint8_t *data, const uint8_t size, uint8_t j)
 {
 	if (j < size) {
 		*(data + j) = *(cbuffer->buffer + cbuffer->start);
@@ -123,15 +124,30 @@ uint8_t cbuffer_pop(struct cbuffer_t * cbuffer, uint8_t * data,
 	return (j);
 }
 
-/*! get the message present in the buffer.
+/*! get a message present in the buffer.
+ *
+ * If no EOM is found then all the content of the buffer
+ * is copied and no EOM or \0 is added to the end.
+ *
+ * If the size of *data is less then the message in the buffer, then
+ * *data get filled and the rest of the message is lost.
+ *
+ * \param cbuffer the circular buffer.
+ * \param data the area where to copy the message if found.
+ * \param size sizeof(data)
+ * \param eom the EndOfMessage char.
+ * \return the number of char copied.
+ *
+ * \warning if the *data is filled, no EOM or \0 is added at the end.
  */
-uint8_t cbuffer_popm(struct cbuffer_t * cbuffer,
-		     uint8_t * data, const uint8_t size, const uint8_t eom)
+uint8_t cbuffer_popm(struct cbuffer_t *cbuffer,
+		     uint8_t *data, const uint8_t size, const uint8_t eom)
 {
 	uint8_t index, j, loop;
 
 	j = 0;
 
+	/* if there is something in the buffer */
 	if (cbuffer->len) {
 		/* freeze the index, while cbuffer->idx can be changed by
 		 * volatile call to add a new bytes to the buffer.
@@ -139,21 +155,36 @@ uint8_t cbuffer_popm(struct cbuffer_t * cbuffer,
 		index = cbuffer->idx;
 		loop = TRUE;
 
-		/* Copy the 1st char.
-		 * In an overflow condition, the start = index, therefor it
-		 * will exit without getting anything back.
+		/* Check if overflow and copy the 1st char manually.
+		 * In an overflow condition, start == index, therefore
+		 * no chars will be copied normally.
 		 */
 		if (cbuffer->overflow) {
+			/* if the 1st char is an EOM, copy it and exit */
 			if (*(cbuffer->buffer + cbuffer->start) == eom)
 				loop = FALSE;
 
+			/* copy a byte, cbuffer->start changed */
 			j = bcpy(cbuffer, data, size, j);
 		}
 
+		/* Extract all the date in the buffer until:
+		 * - EOM is found or
+		 * - buffer is empty.
+		 *
+		 * WARN: do NOT merge this with the previous in a
+		 * do..while loop, because bcpy() modifies cbuffer
+		 * indexes.
+		 */
 		while (loop && (cbuffer->start != index)) {
+			/* if an EOM is found.
+			 * \note need to be done before bcpy() because
+			 * cbuffer->start gets modified later.
+			 */
 			if (*(cbuffer->buffer + cbuffer->start) == eom)
 				loop = FALSE;
 
+			/* copy a byte, cbuffer->start changed */
 			j = bcpy(cbuffer, data, size, j);
 		}
 
