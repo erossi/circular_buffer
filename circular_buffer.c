@@ -64,6 +64,12 @@ void cbuffer_shut(struct cbuffer_t *cbuffer)
  *
  * data[j] = buffer[start]
  *
+ * \param cbuffer the circular buffer.
+ * \param data the area where to copy the char.
+ * \param size sizeof(data)
+ * \param j the index used as data[j].
+ * \return the updated index for data.
+ *
  * \warning cbuffer->start gets modified.
  * \note there is not protection, the next char in the buffer will be
  * extracted and indexes modified event if it should not.
@@ -71,10 +77,12 @@ void cbuffer_shut(struct cbuffer_t *cbuffer)
 uint8_t bcpy(struct cbuffer_t *cbuffer,
 	     uint8_t *data, const uint8_t size, uint8_t j)
 {
+	// is there enough space in data?
 	if (j < size) {
 		*(data + j) = *(cbuffer->buffer + cbuffer->start);
 		j++;
 	}
+
 #ifdef CBUF_OVR_CHAR
 	*(cbuffer->buffer + cbuffer->start) = CBUF_OVR_CHAR;
 #endif
@@ -92,7 +100,10 @@ uint8_t bcpy(struct cbuffer_t *cbuffer,
  *
  * Fetch from the start_index (cbuffer->start) to the current index (cbuffer->idx).
  *
- * \return the number of bytes received.
+ * \param cbuffer the circular buffer.
+ * \param data the area where to copy the message if found.
+ * \param size sizeof(data)
+ * \return the number of bytes fetched.
  */
 uint8_t cbuffer_pop(struct cbuffer_t * cbuffer, uint8_t * data,
 		    const uint8_t size)
@@ -101,6 +112,7 @@ uint8_t cbuffer_pop(struct cbuffer_t * cbuffer, uint8_t * data,
 
 	j = 0;
 
+	// if there are chars to fetch
 	if (cbuffer->len) {
 		/* freeze the index, while cbuffer->idx can be changed by
 		 * volatile call to add a new bytes to the buffer.
