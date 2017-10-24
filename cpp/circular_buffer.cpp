@@ -85,8 +85,6 @@ bool CBuffer::popc(uint8_t *data)
  */
 uint8_t CBuffer::pop(uint8_t* data, const uint8_t sizeofdata)
 {
-	// freeze the index! idx_ can be changed by volatile call to push().
-	uint8_t index {idx_};
 	uint8_t j {0};
 
 	// while there is space left on data and byte in the buffer
