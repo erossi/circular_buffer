@@ -20,30 +20,15 @@
 #ifndef CBUFFER_H
 #define CBUFFER_H
 
-/*
- * Mandatory defs: CBUF_SIZE
- * Optional defs: CBUF_OVR_CHAR
- */
-
 #include <stdint.h>
 #include <memory>
 
-#ifdef USE_DEFAULT_H
-#include "default.h"
-#endif
-
-/*! The size of the buffer.
- *
- * default to 16
- */
-#ifndef CBUF_SIZE
+#ifndef CBUF_SIZE // Buffer size
 #define CBUF_SIZE 16
 #endif
 
-/*! Optional
- *
- * -D CBUF_OVR_CHAR='X'
- */
+// Optional
+//  -D CBUF_OVR_CHAR=46 // '.'
 
 class CBuffer {
 	private:
@@ -55,19 +40,20 @@ class CBuffer {
 		bool overflow_;
 		const uint8_t size_;
 		uint8_t len_; // byte left in the buffer
-		uint8_t bcpy(uint8_t*, const uint8_t, uint8_t);
 	public:
-		CBuffer(uint8_t size = CBUF_SIZE);
-		void clear();
+		// debugging methods
 		uint8_t size() const { return size_; };
 		uint8_t len() const { return len_; };
 		bool overflow() const { return overflow_; };
 		uint8_t index() const { return idx_; };
 		uint8_t start() const { return start_; };
 		uint8_t buffer(uint8_t const i) const { return buffer_[i]; };
+		// contructor
+		CBuffer(uint8_t size = CBUF_SIZE);
+		void clear();
+		bool popc(uint8_t*);
 		uint8_t pop(uint8_t*, const uint8_t);
-		uint8_t popm(uint8_t*, const uint8_t, const uint8_t);
-		bool push(char);
+		bool push(uint8_t);
 };
 
 #endif
