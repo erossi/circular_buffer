@@ -84,12 +84,12 @@ int main() {
 
 				if (len) {
 					cout << "> Data fetched: ";
-					cout << len << endl;
+					cout << (int)len << " [";
 
 					for (auto i = 0; i < len; i++)
 						cout << *(message + i);
 
-					cout << endl;
+					cout << "]" << endl;
 				} else {
 					cout << "> No data" << endl;
 				}
