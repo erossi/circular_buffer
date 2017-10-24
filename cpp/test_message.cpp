@@ -1,6 +1,6 @@
 /*
-    Circular Buffer, a string oriented circular buffer implementation.
-    Copyright (C) 2015-2017 Enrico Rossi
+    Circular Buffer, a byte oriented circular buffer implementation.
+    Copyright (C) 2017 Enrico Rossi
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,13 +19,11 @@
 
 #include <iostream>
 #include <cstdio>
-#include "circular_buffer.h"
+#include "circular_buffer_message.h"
 
-/* message size */
-#define MSG_SIZE 10
-
-// EOM must be passed by the compiler:
-// -D EOM=88
+#define MSG_SIZE 10 // message size less than buffer!
+#define BUF_SIZE 15 // buffer size
+#define EOM 88
 
 using namespace std;
 
@@ -33,7 +31,7 @@ void help()
 {
 	cout << "Usage keys:" << endl;
 	cout << " h : This help message." << endl;
-	cout << " b : Get all data from the buffer." << endl;
+	cout << " a : Get ALL data from the buffer." << endl;
 	cout << " g : Get next message from the buffer." << endl;
 	cout << " c : Clear the buffer." << endl;
 	cout << " 0 : Insert an EndOfMessage (X)." << endl;
@@ -47,7 +45,7 @@ void help()
 
 // Print the content of the buffer and indexes.
 // \note: cout << unsigned char does not print numbers.
-void printit(const CBuffer& cbuffer)
+void printit(const CBufferM& cbuffer)
 {
 	printf("\n");
 	printf("i: %d | ", cbuffer.index());
@@ -56,7 +54,7 @@ void printit(const CBuffer& cbuffer)
 	printf("o: %d\n", cbuffer.overflow());
 	printf("\n");
 
-	for (auto i=0; i < cbuffer.size(); i++)
+	for (auto i = 0; i < cbuffer.size(); i++)
 		if (cbuffer.buffer(i))
 			printf("%c", cbuffer.buffer(i));
 		else
@@ -66,55 +64,54 @@ void printit(const CBuffer& cbuffer)
 }
 
 int main() {
-	CBuffer cbuffer;
-	char *message;
+	CBufferM cbuffer {BUF_SIZE};
+	uint8_t *message;
 	uint8_t len;
-	uint8_t eom {EOM};
 	bool FLloop {true};
-	char rxc;
+	uint8_t rxc;
+	uint8_t eom {EOM};
 
-	message = new char[MSG_SIZE];
+	message = new uint8_t[MSG_SIZE];
 	cout << endl << "Test circular buffer." << endl;
-	cout << "Copyright (C) 2015, 2016 Enrico Rossi - GNU GPL" << endl;
+	cout << "Copyright (C) 2015-2017 Enrico Rossi - GNU GPL" << endl;
 
 	help();
 
 	while (FLloop) {
 		/* get the char */
-		rxc = getchar();
+		rxc = (uint8_t)getchar();
 
 		switch(rxc) {
-			case 'g':
-				len = cbuffer.popm((uint8_t *)message,
-						MSG_SIZE, eom);
+			case 'a':
+				len = cbuffer.pop(message, MSG_SIZE);
 
 				if (len) {
-					/* Terminate the string
-					 * overwriting the EOM char
-					 */
-					*(message + len - 1) = 0;
-					cout << "> MSG fetched (";
-					cout << (int)len << "): ";
-					cout << message << endl;
+					cout << "> Data fetched: ";
+					cout << (int)len << " [";
+
+					for (auto i = 0; i < len; i++)
+						cout << *(message + i);
+
+					cout << "]" << endl;
 				} else {
-					cout << "> No message." << endl;
+					cout << "> No data" << endl;
 				}
 
 				printit(cbuffer);
 				break;
-			case 'b':
-				len = cbuffer.pop((uint8_t *)message, MSG_SIZE);
+			case 'g':
+				len = cbuffer.popm(message, MSG_SIZE, eom);
 
 				if (len) {
-					cout << "> Data fetched: ";
-					cout << len << endl;
+					cout << "> Message fetched: ";
+					cout << (int)len << " [";
 
-					for (auto i=0; i < len; i++)
+					for (auto i = 0; i < len; i++)
 						cout << *(message + i);
 
-					cout << endl;
+					cout << "]" << endl;
 				} else {
-					cout << "> No data" << endl;
+					cout << "> No message." << endl;
 				}
 
 				printit(cbuffer);
@@ -123,7 +120,7 @@ int main() {
 				help();
 				break;
 			case 'q':
-				FLloop=false;
+				FLloop = false;
 				break;
 			case 'c':
 				cbuffer.clear();
