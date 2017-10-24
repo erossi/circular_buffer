@@ -47,38 +47,6 @@
  * -D CBUF_OVR_CHAR='X'
  */
 
-// C++
-#ifdef __cplusplus
-
-#include <memory>
-
-class CBuffer {
-	private:
-		// Fixed array size
-		std::unique_ptr<uint8_t[]> buffer_;
-		uint8_t idx_;
-		uint8_t start_;
-		uint8_t TOP_;
-		bool overflow_;
-		const uint8_t size_;
-		uint8_t len_; // byte left in the buffer
-		uint8_t bcpy(uint8_t*, const uint8_t, uint8_t);
-	public:
-		CBuffer(uint8_t size = CBUF_SIZE);
-		void clear();
-		uint8_t size() const { return size_; };
-		uint8_t len() const { return len_; };
-		bool overflow() const { return overflow_; };
-		uint8_t index() const { return idx_; };
-		uint8_t start() const { return start_; };
-		uint8_t buffer(uint8_t const i) const { return buffer_[i]; };
-		uint8_t pop(uint8_t*, const uint8_t);
-		uint8_t popm(uint8_t*, const uint8_t, const uint8_t);
-		bool push(char);
-};
-
-#else // __cplusplus
-
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0
@@ -128,5 +96,4 @@ uint8_t cbuffer_popm(struct cbuffer_t *cbuffer, uint8_t * data,
 		     const uint8_t size, const uint8_t eom);
 uint8_t cbuffer_push(struct cbuffer_t *cbuffer, char rxc);
 
-#endif // __cplusplus
 #endif
