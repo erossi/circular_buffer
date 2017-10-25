@@ -44,8 +44,8 @@ void help()
 }
 
 // Print the content of the buffer and indexes.
-// \note: cout << unsigned char does not print numbers.
-void printit(const CBufferM<uint8_t, uint8_t>& cbuffer)
+// \note: The scope of this is not to be efficient.
+void printit(const CBuffer<uint8_t, uint8_t>& cbuffer)
 {
 	printf("\n");
 	printf("i: %d | ", cbuffer.index());
@@ -54,11 +54,36 @@ void printit(const CBufferM<uint8_t, uint8_t>& cbuffer)
 	printf("o: %d\n", cbuffer.overflow());
 	printf("\n");
 
-	for (auto i = 0; i < cbuffer.size(); i++)
-		if (cbuffer.buffer(i))
-			printf("%c", cbuffer.buffer(i));
-		else
-			printf("*");
+	for (uint8_t i = 0; i < cbuffer.size(); i++) {
+		if (cbuffer.index() < cbuffer.start()) {
+			if ((i >= cbuffer.start()) || (i < cbuffer.index())) {
+				if (cbuffer.buffer(i) == EOM)
+					cout << "X";
+				else
+					printf("%1x", i);
+			} else {
+				printf(".");
+			}
+		} else if (cbuffer.index() > cbuffer.start()) {
+			if ((i >= cbuffer.start()) && (i < cbuffer.index())) {
+				if (cbuffer.buffer(i) == EOM)
+					cout << "X";
+				else
+					printf("%1x", i);
+			} else {
+				printf(".");
+			}
+		} else {
+			if (cbuffer.len()) {
+				if (cbuffer.buffer(i) == EOM)
+					cout << "X";
+				else
+					printf("%1x", i);
+			} else {
+				printf(".");
+			}
+		}
+	}
 
 	printf("\n");
 }
@@ -72,8 +97,11 @@ int main() {
 	uint8_t eom {EOM};
 
 	message = new uint8_t[MSG_SIZE];
-	cout << endl << "Test circular buffer." << endl;
+	cout << endl << "Test circular buffer for messages." << endl;
 	cout << "Copyright (C) 2015-2017 Enrico Rossi - GNU GPL" << endl;
+	cout << endl << "Fill the buffer with chars from a to e and" << endl;
+	cout << "get them one by one, by message or all at once." << endl << endl;
+
 
 	help();
 
@@ -86,7 +114,7 @@ int main() {
 				len = cbuffer.pop(message, MSG_SIZE);
 
 				if (len) {
-					cout << "> Data fetched: ";
+					cout << "> Objects fetched: ";
 					cout << (int)len << " [";
 
 					for (auto i = 0; i < len; i++)

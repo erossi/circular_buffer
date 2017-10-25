@@ -27,7 +27,7 @@ test_buffer:
 	$(CXX) $(CXXFLAGS) -D CBUF_OVR_CHAR=46 -o test_buffer test_buffer.cpp
 
 test_message:
-	$(CXX) $(CXXFLAGS) -D CBUF_OVR_CHAR=46 -o test_tpl_message test_tpl_message.cpp
+	$(CXX) $(CXXFLAGS) -D CBUF_OVR_CHAR=46 -o test_message test_message.cpp
 
 clean:
 	rm -f *.o test_buffer test_message
