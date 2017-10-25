@@ -16,21 +16,18 @@
 CXX = g++
 CXXFLAGS = -Wall -pedantic -std=c++14
 
-test_msg_o = circular_buffer.o circular_buffer_message.o
-
 .PHONY: clean
 .SILENT: help
 .SUFFIXES: .c, .o
 
 all:
 
-test_buffer: circular_buffer.o
-	$(CXX) $(CXXFLAGS) -o test_buffer test_buffer.cpp circular_buffer.o
+# Templated tests
+test_buffer:
+	$(CXX) $(CXXFLAGS) -D CBUF_OVR_CHAR=46 -o test_buffer test_buffer.cpp
 
-test_message: $(test_msg_o)
-	$(CXX) $(CXXFLAGS) -o test_message test_message.cpp $(test_msg_o)
+test_message:
+	$(CXX) $(CXXFLAGS) -D CBUF_OVR_CHAR=46 -o test_tpl_message test_tpl_message.cpp
 
-circular_buffer.o:
-	$(CXX) $(CXXFLAGS) -D CBUF_OVR_CHAR=46 -c -o circular_buffer.o circular_buffer.cpp
 clean:
 	rm -f *.o test_buffer test_message

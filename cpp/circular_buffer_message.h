@@ -20,17 +20,47 @@
 #ifndef CBUFFER_MSG_H
 #define CBUFFER_MSG_H
 
-#include <stdint.h>
 #include "circular_buffer.h"
 
-class CBufferM : public CBuffer {
+template <typename T, typename D>
+class CBufferM : public CBuffer<T, D> {
 	public:
 		// Contructor
 		// force the Base constructor with the parameter size
 		// or it will call the default with no parameters and
 		// it will throw and error if initialiazed with one.
-		CBufferM(uint8_t size = CBUF_SIZE) : CBuffer{size} {};
-		uint8_t popm(uint8_t*, const uint8_t, const uint8_t);
+		CBufferM(T size = CBUF_SIZE) : CBuffer<T, D>{size} {};
+		T popm(D*, const T, const D);
 };
+
+/*! Pop everything from start_ to EOM.
+ *
+ * If no EOM is found then all the content of the buffer
+ * is copied like pop().
+ *
+ * If the size of data is less then the message in the buffer, then
+ * data get filled and the rest of the message is left in the buffer.
+ *
+ * \param data the area where to copy the message.
+ * \param sizeofdata.
+ * \param eom the EndOfMessage.
+ * \return the number of byte copied.
+ *
+ * \note EOM is NOT copied.
+ * \warning race condition!
+ */
+template <typename T, typename D>
+T CBufferM<T, D>::popm(D* data, const T sizeofdata, const D eom)
+{
+	T j {0};
+
+	// while there is space left on data
+	//  and byte in the buffer
+	//  and the data fetched is NOT EOM
+	while ((j < sizeofdata) && this->popc(data + j) && (*(data + j) != eom))
+		j++;
+
+	return (j);
+}
 
 #endif

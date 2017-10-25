@@ -45,7 +45,7 @@ void help()
 
 // Print the content of the buffer and indexes.
 // \note: cout << unsigned char does not print numbers.
-void printit(const CBufferM& cbuffer)
+void printit(const CBufferM<uint8_t, uint8_t>& cbuffer)
 {
 	printf("\n");
 	printf("i: %d | ", cbuffer.index());
@@ -64,7 +64,7 @@ void printit(const CBufferM& cbuffer)
 }
 
 int main() {
-	CBufferM cbuffer {BUF_SIZE};
+	CBufferM<uint8_t, uint8_t> cbuffer {BUF_SIZE};
 	uint8_t *message;
 	uint8_t len;
 	bool FLloop {true};

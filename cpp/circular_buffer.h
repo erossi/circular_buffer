@@ -1,5 +1,5 @@
 /*
-    Circular Buffer, a string oriented circular buffer implementation.
+    Circular Buffer, an object oriented circular buffer.
     Copyright (C) 2015-2017 Enrico Rossi
 
     This program is free software; you can redistribute it and/or modify
@@ -20,40 +20,148 @@
 #ifndef CBUFFER_H
 #define CBUFFER_H
 
-#include <stdint.h>
 #include <memory>
 
-#ifndef CBUF_SIZE // Buffer size
+#ifndef CBUF_SIZE // Default buffer size
 #define CBUF_SIZE 16
 #endif
 
-// Optional
-//  -D CBUF_OVR_CHAR=46 // '.'
-
+// CBuffer of D objects indexed by T type.
+template <typename T, typename D>
 class CBuffer {
 	private:
 		// Fixed array size
-		std::unique_ptr<uint8_t[]> buffer_;
-		uint8_t idx_;
-		uint8_t start_;
-		uint8_t TOP_;
+		std::unique_ptr<D[]> buffer_;
+		T idx_;
+		T start_;
+		T TOP_;
 		bool overflow_;
-		const uint8_t size_;
-		uint8_t len_; // byte left in the buffer
+		const T size_;
+		T len_; // byte left in the buffer
 	public:
 		// debugging methods
-		uint8_t size() const { return size_; };
-		uint8_t len() const { return len_; };
+		T size() const { return size_; };
+		T len() const { return len_; };
 		bool overflow() const { return overflow_; };
-		uint8_t index() const { return idx_; };
-		uint8_t start() const { return start_; };
-		uint8_t buffer(uint8_t const i) const { return buffer_[i]; };
+		T index() const { return idx_; };
+		T start() const { return start_; };
+		T buffer(T const i) const { return buffer_[i]; };
 		// contructor
-		CBuffer(uint8_t size = CBUF_SIZE);
+		CBuffer(T size = CBUF_SIZE);
 		void clear();
-		bool popc(uint8_t*);
-		uint8_t pop(uint8_t*, const uint8_t);
-		bool push(uint8_t);
+		bool popc(D*);
+		T pop(D*, const T);
+		bool push(D);
 };
 
+//! Clear the buffer.
+template <typename T, typename D>
+void CBuffer<T, D>::clear()
+{
+	idx_ = 0;
+	start_ = 0;
+	len_ = 0;
+	overflow_ = false;
+}
+
+/*! Initialize the buffer.
+ *
+ * \param plugin enable the check_eom function plugin.
+ * \return the allocated struct.
+ */
+template <typename T, typename D>
+CBuffer<T, D>::CBuffer(T sz) : size_{sz}
+{
+	buffer_ = std::make_unique<D[]>(size_);
+	TOP_ = size_ - 1;
+	clear();
+}
+
+/*! Extract a single byte from the buffer.
+ *
+ * data = buffer[start]
+ *
+ * \param data the area where to copy the byte.
+ * \return true if ok
+ * \warning possible race condition!
+ */
+template <typename T, typename D>
+bool CBuffer<T, D>::popc(D *data)
+{
+	if (len_) {
+		*data = buffer_[start_];
+
+		if (start_ == TOP_)
+			start_ = 0;
+		else
+			start_++;
+
+		// From here possible race condition with push().
+		len_--;
+		overflow_ = false;
+
+		return (true);
+	} else {
+		return (false);
+	}
+}
+
+/*! Pop everything present in the buffer.
+ *
+ * start_ to the current idx_.
+ *
+ * \param data the area where to copy the message if found.
+ * \param sizeofdata.
+ * \return the number of bytes fetched.
+ * \warning if the data size is less than the buffer, only the sizeofdata
+ * byte get fetched, the buffer remain not empty.
+ */
+template <typename T, typename D>
+T CBuffer<T, D>::pop(D* data, const T sizeofdata)
+{
+	T j {0};
+
+	// while there is space left on data and byte in the buffer
+	while ((j < sizeofdata) && popc(data + j))
+		j++;
+
+	return (j);
+}
+
+/*! add data to the buffer.
+ *
+ * \note if overflow and EOM then the last char must be the EOM.
+ *
+ * \warning race condition with other functions.
+ *  keep an eye on: overflow_, idx_, buffer_[idx_], len_
+ */
+template <typename T, typename D>
+bool CBuffer<T, D>::push(D c)
+{
+	// If the buffer is full do nothing.
+	if (overflow_) {
+		return (false);
+	} else {
+		// catch overflow
+		if (start_) {
+			// idx next to start?
+			if (idx_ == (start_ - 1))
+				overflow_ = true;
+		} else {
+			// idx next to the end of the buffer?
+			if (idx_ == TOP_)
+				overflow_ = true;
+		}
+
+		buffer_[idx_] = c;
+
+		if (idx_ == TOP_)
+			idx_ = 0;
+		else
+			idx_++;
+
+		len_++;
+		return (true);
+	}
+}
 #endif
