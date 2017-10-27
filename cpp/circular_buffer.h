@@ -26,6 +26,14 @@
 #define CBUF_SIZE 16
 #endif
 
+/*! Buffer structure
+
+ [ | | | | | | | | | | | | | | | | | | | | | | | | ]
+  ^buffer   ^start                        ^idx    ^TOP
+            ^------------ len ------------^
+  ^---------------------- size -------------------^
+ */
+
 // CBuffer of D objects indexed by T type.
 template <typename T, typename D>
 class CBuffer {
@@ -34,10 +42,13 @@ class CBuffer {
 		std::unique_ptr<D[]> buffer_;
 		T idx_;
 		T start_;
-		T TOP_;
 		bool overflow_;
-		const T size_;
 		T len_; // byte left in the buffer
+	protected:
+		T TOP_;
+		const T size_;
+		void set_start(T s) { start_ = s; };
+		void set_len(T l) { len_ = l; };
 	public:
 		// debugging methods
 		T size() const { return size_; };
@@ -45,7 +56,7 @@ class CBuffer {
 		bool overflow() const { return overflow_; };
 		T index() const { return idx_; };
 		T start() const { return start_; };
-		T buffer(T const i) const { return buffer_[i]; };
+		T operator[](T const i) const { return buffer_[i]; };
 		// contructor
 		CBuffer(T size = CBUF_SIZE);
 		void clear();
@@ -77,11 +88,11 @@ CBuffer<T, D>::CBuffer(T sz) : size_{sz}
 	clear();
 }
 
-/*! Extract a single byte from the buffer.
+/*! Extract a single object from the buffer.
  *
  * data = buffer[start]
  *
- * \param data the area where to copy the byte.
+ * \param data the area where to copy the object.
  * \return true if ok
  * \warning possible race condition!
  */
@@ -133,7 +144,7 @@ T CBuffer<T, D>::pop(D* data, const T sizeofdata)
  * \note if overflow and EOM then the last char must be the EOM.
  *
  * \warning race condition with other functions.
- *  keep an eye on: overflow_, idx_, buffer_[idx_], len_
+ *  modified members data: overflow_, idx_, buffer_[idx_], len_
  */
 template <typename T, typename D>
 bool CBuffer<T, D>::push(D c)

@@ -57,7 +57,7 @@ void printit(const CBuffer<uint8_t, uint8_t>& cbuffer)
 	for (uint8_t i = 0; i < cbuffer.size(); i++) {
 		if (cbuffer.index() < cbuffer.start()) {
 			if ((i >= cbuffer.start()) || (i < cbuffer.index())) {
-				if (cbuffer.buffer(i) == EOM)
+				if (cbuffer[i] == EOM)
 					cout << "X";
 				else
 					printf("%1x", i);
@@ -66,7 +66,7 @@ void printit(const CBuffer<uint8_t, uint8_t>& cbuffer)
 			}
 		} else if (cbuffer.index() > cbuffer.start()) {
 			if ((i >= cbuffer.start()) && (i < cbuffer.index())) {
-				if (cbuffer.buffer(i) == EOM)
+				if (cbuffer[i] == EOM)
 					cout << "X";
 				else
 					printf("%1x", i);
@@ -75,7 +75,7 @@ void printit(const CBuffer<uint8_t, uint8_t>& cbuffer)
 			}
 		} else {
 			if (cbuffer.len()) {
-				if (cbuffer.buffer(i) == EOM)
+				if (cbuffer[i] == EOM)
 					cout << "X";
 				else
 					printf("%1x", i);
