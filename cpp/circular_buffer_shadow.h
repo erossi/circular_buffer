@@ -48,7 +48,7 @@ class CBufferS : public CBuffer<T, D> {
 		CBufferS(T size = CBUF_SIZE);
 
 		// declaration overload for shadow index.
-		void clear();
+		void clear() override;
 		bool popc(D*);
 		T pop(D*, const T);
 		bool push(D);

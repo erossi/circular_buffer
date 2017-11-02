@@ -59,7 +59,7 @@ class CBuffer {
 		T operator[](T const i) const { return buffer_[i]; };
 		// contructor
 		CBuffer(T size = CBUF_SIZE);
-		void clear();
+		virtual void clear();
 		bool popc(D*);
 		T pop(D*, const T);
 		bool push(D);
