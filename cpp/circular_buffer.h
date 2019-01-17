@@ -56,6 +56,7 @@ class CBuffer {
 		bool overflow() const { return overflow_; };
 		T index() const { return idx_; };
 		T start() const { return start_; };
+		// FIXME i < size_
 		T operator[](T const i) const { return buffer_[i]; };
 		// contructor
 		CBuffer(T size = CBUF_SIZE);
@@ -126,6 +127,8 @@ bool CBuffer<T, D>::popc(D *data)
  * \return the number of bytes fetched.
  * \warning if the data size is less than the buffer, only the sizeofdata
  * byte get fetched, the buffer remain not empty.
+ * \warning if the sizeofdata is bigger than the allocated data,
+ * it will segfault or worse.
  */
 template <typename T, typename D>
 T CBuffer<T, D>::pop(D* data, const T sizeofdata)
