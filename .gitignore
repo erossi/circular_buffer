@@ -1,4 +1,6 @@
 .todo
+runner
+runner.cpp
 *.o
 *.swp
 tmp/
