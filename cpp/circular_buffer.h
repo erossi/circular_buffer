@@ -63,6 +63,7 @@ class CBuffer {
 		virtual void clear();
 		bool popc(D*);
 		T pop(D*, const T);
+		T popm(D*, const T, const D);
 		bool push(D);
 };
 
@@ -137,6 +138,36 @@ T CBuffer<T, D>::pop(D* data, const T sizeofdata)
 
 	// while there is space left on data and byte in the buffer
 	while ((j < sizeofdata) && popc(data + j))
+		j++;
+
+	return (j);
+}
+
+/*! Pop everything from start_ to EOM.
+ *
+ * If no EOM is found then all the content of the buffer
+ * is copied like pop().
+ *
+ * If the size of data is less then the message in the buffer, then
+ * data get filled and the rest of the message is left in the buffer.
+ *
+ * \param data the area where to copy the message.
+ * \param sizeofdata.
+ * \param eom the EndOfMessage.
+ * \return the number of byte copied.
+ *
+ * \note EOM is NOT copied.
+ * \warning race condition!
+ */
+template <typename T, typename D>
+T CBuffer<T, D>::popm(D* data, const T sizeofdata, const D eom)
+{
+	T j {0};
+
+	// while there is space left on data
+	//  and byte in the buffer
+	//  and the data fetched is NOT EOM
+	while ((j < sizeofdata) && this->popc(data + j) && (*(data + j) != eom))
 		j++;
 
 	return (j);

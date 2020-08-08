@@ -1,6 +1,5 @@
-/*
- * Circular Buffer, an object oriented circular buffer.
- * Copyright (C) 2015-2017 Enrico Rossi
+/* Circular Buffer, an object oriented circular buffer.
+ * Copyright (C) 2015-2020 Enrico Rossi
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +18,7 @@
 
 #include <iostream>
 #include <cstdio>
-#include "circular_buffer_message.h"
+#include "circular_buffer.h"
 
 #define MSG_SIZE 10 // message size less than buffer!
 #define BUF_SIZE 15 // buffer size
@@ -89,7 +88,7 @@ void printit(const CBuffer<uint8_t, uint8_t>& cbuffer)
 }
 
 int main() {
-	CBufferM<uint8_t, uint8_t> cbuffer {BUF_SIZE};
+	CBuffer<uint8_t, uint8_t> cbuffer {BUF_SIZE};
 	uint8_t *message;
 	uint8_t len;
 	bool FLloop {true};
@@ -98,7 +97,7 @@ int main() {
 
 	message = new uint8_t[MSG_SIZE];
 	cout << endl << "Test circular buffer for messages." << endl;
-	cout << "Copyright (C) 2015-2017 Enrico Rossi - GNU GPL" << endl;
+	cout << "Copyright (C) 2015-2020 Enrico Rossi - GNU GPL" << endl;
 	cout << endl << "Fill the buffer with chars from a to e and" << endl;
 	cout << "get them one by one, by message or all at once." << endl << endl;
 
