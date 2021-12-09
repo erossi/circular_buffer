@@ -21,8 +21,8 @@
 #include <cstdio>
 #include "circular_buffer.h"
 
-#define MSG_SIZE 10 // message size less than buffer!
-#define BUF_SIZE 15 // buffer size
+const unsigned int BUF_SIZE { 15 }; // buffer size
+const unsigned int MSG_SIZE { 10 }; // message size less than buffer!
 
 using namespace std;
 
@@ -30,7 +30,7 @@ void help()
 {
 	cout << "Usage keys:" << endl;
 	cout << " h : This help message." << endl;
-	cout << " a : Get ALL data from the buffer." << endl;
+	cout << " a : Get " << MSG_SIZE << " objects from the buffer." << endl;
 	cout << " g : Get next object from the buffer." << endl;
 	cout << " c : Clear the buffer." << endl;
 	cout << " q : Quit." << endl;
