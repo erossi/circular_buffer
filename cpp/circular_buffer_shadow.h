@@ -1,6 +1,6 @@
 /*
  * Circular Buffer, an object oriented circular buffer.
- * Copyright (C) 2015-2017 Enrico Rossi
+ * Copyright (C) 2015-2021 Enrico Rossi
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef CBUFFER_SHADOW_H
-#define CBUFFER_SHADOW_H
+#ifndef _CBUFFER_SHADOW_H_
+#define _CBUFFER_SHADOW_H_
 
 #include "circular_buffer.h"
 
-/*! Buffer structure
+/** Buffer structure
  
  [ | | | | | | | | | | | | | | | | | | | | | | | | ]
   ^buffer   ^start    ^shadow_start       ^idx    ^TOP
-                      ^ --- shadow_len ---^
-            ^------------ len ------------^
+                      ^ -- shadow_len() --^
+            ^------------ len() ----------^
   ^---------------------- size -------------------^
  */
 
@@ -35,17 +35,16 @@ template <typename T, typename D>
 class CBufferS : public CBuffer<T, D> {
 	private:
 		T shadow_start_;
-		T shadow_len_;
 	public:
 		// Debugging methods
 		T start() const { return(shadow_start_); };
-		T len() const { return(shadow_len_); };
+		T len() const override;
 
 		// Contructor
 		// force the Base constructor with the parameter size
 		// or it will call the default with no parameters and
 		// it will throw and error if initialiazed with one.
-		CBufferS(T size = CBUF_SIZE);
+		CBufferS(T = CBUF_SIZE);
 
 		// declaration overload for shadow index.
 		void clear() override;
@@ -58,24 +57,46 @@ class CBufferS : public CBuffer<T, D> {
 		void reset();
 };
 
-//! Clear the buffer and the shadow index.
-//
-// \sameas CBuffer::clear()
-//
+/*! Clear the buffer and the shadow index.
+ *
+ * @sameas CBuffer::clear()
+ */
 template <typename T, typename D>
 void CBufferS<T, D>::clear()
 {
 	CBuffer<T, D>::clear(); // call the base clear
 	shadow_start_ = 0;
-	shadow_len_ = 0;
+}
+
+/** LENght of the buffer
+ *
+ * Calculate and return the len of the buffer, the number of
+ * objects remaining.
+ *
+ * @return len
+ * @note const function does not change any attribute.
+ * @sameas CBuffer::len()
+ */
+template <typename T, typename D>
+T CBufferS<T, D>::len() const
+{
+  if (shadow_start_ == CBufferS<T, D>::index()) {
+    if (CBufferS<T, D>::overflow())
+      return CBufferS<T, D>::size();
+    else
+      return 0;
+  } else if (CBuffer<T, D>::index() > shadow_start_) {
+    return (CBuffer<T, D>::index() - shadow_start_);
+  } else {
+    return (CBuffer<T, D>::size() - shadow_start_ + CBuffer<T, D>::index());
+  }
 }
 
 //! Contruct the buffer with the shadow index.
 template <typename T, typename D>
 CBufferS<T, D>::CBufferS(T size) : CBuffer<T, D>{size}
 {
-	shadow_start_ = 0;
-	shadow_len_ = 0;
+  clear();
 }
 
 /*! Extract a single shadow object from the buffer.
@@ -85,7 +106,7 @@ CBufferS<T, D>::CBufferS(T size) : CBuffer<T, D>{size}
 template <typename T, typename D>
 bool CBufferS<T, D>::popc(D *data)
 {
-	if (shadow_len_) {
+	if (len()) {
 		// Here "this->" could be used since operator[] has not
 		// been overloaded.
 		*data = CBuffer<T, D>::operator[](shadow_start_);
@@ -96,9 +117,6 @@ bool CBufferS<T, D>::popc(D *data)
 			shadow_start_ = 0;
 		else
 			shadow_start_++;
-
-		// From here possible race condition with push().
-		shadow_len_--;
 
 		return (true);
 	} else {
@@ -132,7 +150,6 @@ template <typename T, typename D>
 bool CBufferS<T, D>::push(D c)
 {
 	if (CBuffer<T, D>::push(c)) {
-		shadow_len_++;
 		return(true);
 	} else {
 		return(false);
@@ -146,8 +163,10 @@ bool CBufferS<T, D>::push(D c)
 template <typename T, typename D>
 void CBufferS<T, D>::commit()
 {
-	CBuffer<T, D>::set_start(shadow_start_);
-	CBuffer<T, D>::set_len(shadow_len_);
+  if (CBuffer<T, D>::start() != shadow_start_) {
+    CBuffer<T, D>::set_start(shadow_start_);
+    CBuffer<T, D>::clear_overflow();
+  }
 }
 
 /*! Restore the index back.
@@ -157,7 +176,6 @@ template <typename T, typename D>
 void CBufferS<T, D>::reset()
 {
 	shadow_start_ = CBuffer<T, D>::start();
-	shadow_len_ = CBuffer<T, D>::len();
 }
 
 #endif

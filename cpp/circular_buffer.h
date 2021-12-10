@@ -1,5 +1,5 @@
 /* Circular Buffer, an object oriented circular buffer.
- * Copyright (C) 2015-2020 Enrico Rossi
+ * Copyright (C) 2015-2021 Enrico Rossi
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,11 @@
 #define CBUF_SIZE 16
 #endif
 
-/*! Buffer structure
+/** Buffer structure
 
  [ | | | | | | | | | | | | | | | | | | | | | | | | ]
   ^buffer   ^start                        ^idx    ^TOP
-            ^------------ len ------------^
+            ^------------ len() ----------^
   ^---------------------- size -------------------^
  */
 
@@ -42,18 +42,16 @@ class CBuffer {
 		T idx_;
 		T start_;
 		bool overflow_;
-		T len_; // byte left in the buffer
 		virtual void pop_object(D*);
 		virtual void push_object(D);
 	protected:
 		T TOP_;
 		const T size_;
 		void set_start(T s) { start_ = s; };
-		void set_len(T l) { len_ = l; };
+    void clear_overflow() { overflow_ = false; };
 	public:
 		// debugging methods
 		T size() const { return size_; };
-		T len() const { return len_; };
 		bool overflow() const { return overflow_; };
 		T index() const { return idx_; };
 		T start() const { return start_; };
@@ -62,6 +60,7 @@ class CBuffer {
 		// contructor
 		CBuffer(T size = CBUF_SIZE);
 		virtual void clear();
+		virtual T len() const;
 		bool popc(D*);
 		T pop(D*, const T);
 		T popm(D*, const T, const D);
@@ -74,8 +73,30 @@ void CBuffer<T, D>::clear()
 {
 	idx_ = 0;
 	start_ = 0;
-	len_ = 0;
 	overflow_ = false;
+}
+
+/** LENght of the buffer
+ *
+ * Calculate and return the len of the buffer, the number of
+ * objects remaining.
+ *
+ * @return len
+ * @note const function does not change any attribute.
+ */
+template <typename T, typename D>
+T CBuffer<T, D>::len() const
+{
+  if (idx_ == start_) {
+    if (overflow_)
+      return size_;
+    else
+      return 0;
+  } else if (idx_ > start_) {
+    return (idx_ - start_);
+  } else {
+    return (size_ - start_ + idx_);
+  }
 }
 
 /*! Initialize the buffer.
@@ -113,7 +134,7 @@ void CBuffer<T, D>::pop_object(D *data)
 template <typename T, typename D>
 bool CBuffer<T, D>::popc(D *data)
 {
-	if (len_) {
+	if (len()) {
 		pop_object(data); // override me
 
 		if (start_ == TOP_)
@@ -122,7 +143,6 @@ bool CBuffer<T, D>::popc(D *data)
 			start_++;
 
 		// From here possible race condition with push().
-		len_--;
 		overflow_ = false;
 
 		return (true);
@@ -200,7 +220,7 @@ void CBuffer<T, D>::push_object(D c)
  * \note if overflow and EOM then the last char must be the EOM.
  *
  * \warning race condition with other functions.
- *  modified members data: overflow_, idx_, buffer_[idx_], len_
+ *  modified members data: overflow_, idx_, buffer_[idx_]
  */
 template <typename T, typename D>
 bool CBuffer<T, D>::push(D c)
@@ -227,7 +247,6 @@ bool CBuffer<T, D>::push(D c)
 		else
 			idx_++;
 
-		len_++;
 		return (true);
 	}
 }
