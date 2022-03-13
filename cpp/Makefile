@@ -14,13 +14,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 CXX = g++
-CXXFLAGS = -Wall -pedantic -std=c++14
+CXXFLAGS = -Wall -Wextra -pedantic -std=c++14 -Weffc++
 
 .PHONY: clean
 .SILENT: help
 .SUFFIXES: .c, .o
 
-all:
+all: test_buffer test_message test_shadow
 
 # Templated tests
 test_buffer:

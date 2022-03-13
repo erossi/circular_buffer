@@ -39,14 +39,14 @@ class CBuffer {
 	private:
 		// Fixed array size
 		std::unique_ptr<D[]> buffer_;
-		T idx_;
-		T start_;
-		bool overflow_;
+		T idx_ { 0 };
+		T start_ { 0 };
+		bool overflow_ { false };
 		virtual void pop_object(D*);
 		virtual void push_object(D);
 	protected:
-		T TOP_;
 		const T size_;
+		T TOP_ { (T)(size_ - 1) };
 		void set_start(T s) { start_ = s; };
     void clear_overflow() { overflow_ = false; };
 	public:
@@ -57,8 +57,8 @@ class CBuffer {
 		T start() const { return start_; };
 		// FIXME i < size_
 		T operator[](T const i) const { return buffer_[i]; };
-		// contructor
-		CBuffer(T size = CBUF_SIZE);
+		CBuffer(T = CBUF_SIZE); // contructor
+		virtual ~CBuffer() = default; // virtual destructor
 		virtual void clear();
 		virtual T len() const;
 		bool popc(D*);
