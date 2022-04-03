@@ -46,7 +46,7 @@ class CBuffer {
 		virtual void push_object(D);
 	protected:
 		const T size_;
-		T TOP_ { (T)(size_ - 1) };
+		const T TOP_;
 		void set_start(T s) { start_ = s; };
     void clear_overflow() { overflow_ = false; };
 	public:
@@ -105,10 +105,9 @@ T CBuffer<T, D>::len() const
  * \return the allocated struct.
  */
 template <typename T, typename D>
-CBuffer<T, D>::CBuffer(T sz) : size_{sz}
+CBuffer<T, D>::CBuffer(T sz) : size_ { sz }, TOP_ { (T)(sz - 1) }
 {
 	buffer_ = std::make_unique<D[]>(size_);
-	TOP_ = size_ - 1;
 	clear();
 }
 
